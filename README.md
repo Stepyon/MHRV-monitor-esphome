@@ -47,7 +47,7 @@ Connect **one 4.7 kΩ resistor between 3V3 and GPIO4/DATA**, shared by all four 
 
 The four DS18B20 probes should measure air temperature **inside the four ventilation ducts**, close to the MVHR/MHRV unit. The installation shown below uses a **custom 3D-printed sensor adapter** to hold each waterproof probe in the duct wall.
 
-![Installed DS18B20 sensor adapter in an insulated MVHR duct just above the unit](docs/images/mhrv-duct-probe-installation.webp)
+![Installed DS18B20 sensor adapter in an insulated MVHR duct just above the unit](docs/images/mhrv-duct-probe-installation.jpg)
 
 **3D-printable adapter:** [Download the STL model](docs/models/MHRV_sensor_adapter.stl) — designed for this installation. **Print four adapters**, one per temperature probe. Check that the model fits your own probe and duct before making holes.
 
