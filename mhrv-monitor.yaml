@@ -249,6 +249,43 @@ sensor:
       efficiency = fminf(100.0f, fmaxf(0.0f, efficiency));
       return roundf(efficiency * 10.0f) / 10.0f;
 
+
+  # Remote OTA diagnostics: report flash capacity and available runtime RAM.
+  # All diagnostic entities are read-only; none add saved preference slots.
+  - platform: template
+    name: "Flash Chip Size"
+    icon: "mdi:memory"
+    entity_category: diagnostic
+    unit_of_measurement: "MB"
+    accuracy_decimals: 1
+    update_interval: 60s
+    lambda: |-
+      return ESP.getFlashChipRealSize() / 1048576.0f;
+
+  - platform: debug
+    free:
+      name: "Free Heap"
+      entity_category: diagnostic
+    block:
+      name: "Largest Free Heap Block"
+      entity_category: diagnostic
+    fragmentation:
+      name: "Heap Fragmentation"
+      entity_category: diagnostic
+    loop_time:
+      name: "Main Loop Time"
+      entity_category: diagnostic
+
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    entity_category: diagnostic
+    update_interval: 60s
+
+  - platform: uptime
+    name: "Uptime"
+    entity_category: diagnostic
+    update_interval: 60s
+
 text_sensor:
   - platform: template
     name: "Operating Mode"
@@ -273,6 +310,26 @@ text_sensor:
         return {"Bypass"};
       if (fresh < extract) return {"Heating"};
       return {"Cooling"};
+
+
+  - platform: debug
+    device:
+      name: "Device Information"
+      entity_category: diagnostic
+    reset_reason:
+      name: "Reset Reason"
+      entity_category: diagnostic
+
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+      entity_category: diagnostic
+    mac_address:
+      name: "MAC Address"
+      entity_category: diagnostic
+
+debug:
+  update_interval: 60s
 
 script:
   - id: refresh_air_temperatures
