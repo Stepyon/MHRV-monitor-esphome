@@ -179,6 +179,24 @@ The example offsets are **not universal**: use your own measured readings. The f
 
 The same compiled binary works for every new supported board: Wi-Fi credentials and the API encryption key are provisioned and stored in device flash, **not inside the public image**. ESPHome limits the initial provisioning window to five minutes; power-cycle the device if the setup window expires.
 
+## Home Assistant device interface
+
+After connecting the monitor to Home Assistant through ESPHome, its device page provides the live temperatures, calculated heat-recovery efficiency and configuration controls. **No extra Home Assistant templates are required** for these measurements.
+
+### Sensors
+
+![Home Assistant screenshot showing the MHRV Monitor's four named temperatures, supply and exhaust efficiency, and operating mode](docs/images/mhrv-device-ui-sensors.webp)
+
+The four mapped air temperatures (**Outdoor, Supply, Extract and Exhaust**) are displayed alongside **Supply Efficiency**, **Exhaust Efficiency** and the estimated **Operating Mode** (Heating, Cooling, Bypass or Neutral). These values are calculated and published by the ESP8266 itself.
+
+### Configuration
+
+![Home Assistant screenshot showing MHRV Monitor probe mapping dropdowns, individual probe calibration and temperature sampling controls](docs/images/mhrv-device-ui-configuration.webp)
+
+Use the four **Air Probe** dropdowns to assign each physical DS18B20 probe to its duct without editing or recompiling firmware. The **Temperature 1–4 Calibration** controls adjust each physical probe independently, and polling, smoothing and hysteresis settings let you tune how measurements are reported. Your selections are saved on the device.
+
+**Note:** The screenshots show one example installation; probe numbers, calibration values and Home Assistant entity IDs will differ on other devices. For best efficiency accuracy, [calibrate the four probes together](#calibrate-the-temperature-probes-important-for-efficiency-calculations) before mounting them in separate ducts.
+
 ## One-click OTA from Home Assistant
 
 After a release is published, the device reads a version manifest from:
