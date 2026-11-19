@@ -1,0 +1,20 @@
+name: Publish source release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package public source (never include secrets or CI binaries)
+        run: |
+          mkdir -p dist/mhrv-monitor
+          cp mhrv-monitor.yaml .temperature_filters.yaml secrets.example.yaml README.md dist/mhrv-monitor/
+          tar -C dist -czf mhrv-monitor-source.tar.gz mhrv-monitor
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" mhrv-monitor-source.tar.gz --title "${GITHUB_REF_NAME}" --generate-notes
