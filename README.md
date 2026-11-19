@@ -39,6 +39,13 @@ The **LILYGO TTGO T-Base (ESP8266)** can be powered using its Micro-USB port or 
 
 **My installation:** For the **Vent-Axia Kinetic Advance S**, I powered the TTGO T-Base from a **5 V connection on the ventilation unit's main circuit board**: 5 V to the TTGO **`5V` pin**, and the corresponding ground to **`GND`**. This avoids needing a separate USB power supply.
 
+**Optional power-supply decoupling:** In my installation I also fitted **two 10 µF ceramic capacitors**, each connected **across a power rail and ground**:
+
+- One **10 µF** capacitor between **`5V` and `GND`**.
+- One **10 µF** capacitor between **`3V3` and `GND`**.
+
+Both capacitors are connected **in parallel with the respective supply rails**, not in series with the power wires. They can help smooth short supply-voltage fluctuations when the ESP8266 Wi-Fi radio draws current, but **they are optional** and do not replace a stable, adequately rated power source. Use non-polarised ceramic capacitors with a suitable voltage rating (preferably **10 V or higher** for the 5 V rail), place them close to the board's power pins, and avoid shorting adjacent terminals.
+
 **Important electrical precautions:**
 
 - **Do not assume that any terminal labelled 5 V on an MVHR board is a general-purpose power supply.** Confirm the correct terminal, polarity, regulated output voltage and **available continuous/startup current** using the specific unit's documentation and/or a qualified technician before connecting anything. A signal or LED output may be unsuitable for powering an ESP8266; the Vent-Axia documentation describes a **5 V LED indication output**, not a guaranteed auxiliary supply for third-party electronics.
