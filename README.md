@@ -397,10 +397,6 @@ For example, an existing entity may be named `sensor.attic_mhrv_monitor_4a3f89_e
 
 You can also give the device a clean display name such as **Attic MHRV Monitor** under its Home Assistant device settings. **Changing the device display name does not automatically rename existing entity IDs.** Don't set `name_add_mac_suffix: false` on a common factory image: devices would share the same network hostname, causing discovery or connection conflicts. These simple, location-specific entity IDs cannot be guaranteed by a universal firmware image alone; Home Assistant owns the final entity registry IDs.
 
-## Release testing and versioning
-
-Do not retag an already published release. Once the changes are merged and validation passes, publish a **new `v0.3.0` tag** to trigger the existing CI release workflow. Check factory + OTA builds and GitHub Pages deployment. This testing version only adds diagnostics; it does not deliberately change the saved-preferences layout.
-
 ## Source and customization
 
 The canonical, credential-free source is `mhrv-monitor.yaml`. The hidden `.temperature_filters.yaml` file must remain beside it. You can run:
