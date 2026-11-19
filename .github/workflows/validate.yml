@@ -25,11 +25,14 @@ jobs:
         run: |
           test -n "$(find .esphome/build -name 'firmware.factory.bin' -print -quit)"
           test -n "$(find .esphome/build -name 'firmware.ota.bin' -print -quit)"
+      - name: Stage test binaries outside ESPHome hidden build directory
+        run: |
+          mkdir -p test-binaries
+          cp "$(find .esphome/build -name 'firmware.factory.bin' -print -quit)" test-binaries/
+          cp "$(find .esphome/build -name 'firmware.ota.bin' -print -quit)" test-binaries/
       - name: Upload test binaries (not a published release)
         uses: actions/upload-artifact@v4
         with:
           name: mhrv-monitor-test-firmware
-          path: |
-            .esphome/build/**/firmware.factory.bin
-            .esphome/build/**/firmware.ota.bin
+          path: test-binaries/
           if-no-files-found: error
