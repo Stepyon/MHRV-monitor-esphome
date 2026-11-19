@@ -413,6 +413,10 @@ For a personalized fork, you may replace indexed probes with permanent addresses
 
 The optional `secrets.example.yaml` illustrates how to hold private credentials for a custom fork; the **standard factory source doesn't use secrets.yaml**. Keep any personal secrets out of Git and GitHub Actions.
 
+## Inspiration and acknowledgements
+
+This project was inspired by [ptashek/mhrv_esphome](https://github.com/ptashek/mhrv_esphome), an ESPHome-based MHRV monitoring project. **I recommend checking out the original repository as well** for another implementation and ideas.
+
 ## License
 
 **MIT License — Copyright (c) 2026 Stepyon.** See the [LICENSE](LICENSE) file for the full terms.
