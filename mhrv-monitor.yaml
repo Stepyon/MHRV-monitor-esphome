@@ -1,0 +1,210 @@
+# MHRV monitor: ESP8266 + four DS18B20 probes
+# Copy secrets.example.yaml to secrets.yaml and enter your own values.
+# The default index mapping is portable but may change when probes change.
+substitutions:
+  device_name: mhrv-monitor
+  friendly_name: MHRV Monitor
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  on_boot:
+    priority: -100
+    then:
+      - script.execute: temperature_polling_loop
+
+esp8266:
+  board: d1_mini
+  restore_from_flash: true
+
+logger:
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    # ESPHome >= 2026.9: authenticated and encrypted using the native API key.
+    # See README for migration from existing plaintext OTA.
+    encryption:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "${friendly_name} Setup"
+    password: !secret fallback_ap_password
+
+captive_portal:
+
+one_wire:
+  - platform: gpio
+    pin: GPIO4
+    id: temperature_bus
+
+sensor:
+  - platform: dallas_temp
+    one_wire_id: temperature_bus
+    index: 0
+    id: temperature_1
+    name: "Temperature 1"
+    resolution: 12
+    update_interval: never
+    accuracy_decimals: 1
+    filters: !include
+      file: .temperature_filters.yaml
+      vars:
+        calibration_id: temperature_1_calibration
+
+  - platform: dallas_temp
+    one_wire_id: temperature_bus
+    index: 1
+    id: temperature_2
+    name: "Temperature 2"
+    resolution: 12
+    update_interval: never
+    accuracy_decimals: 1
+    filters: !include
+      file: .temperature_filters.yaml
+      vars:
+        calibration_id: temperature_2_calibration
+
+  - platform: dallas_temp
+    one_wire_id: temperature_bus
+    index: 2
+    id: temperature_3
+    name: "Temperature 3"
+    resolution: 12
+    update_interval: never
+    accuracy_decimals: 1
+    filters: !include
+      file: .temperature_filters.yaml
+      vars:
+        calibration_id: temperature_3_calibration
+
+  - platform: dallas_temp
+    one_wire_id: temperature_bus
+    index: 3
+    id: temperature_4
+    name: "Temperature 4"
+    resolution: 12
+    update_interval: never
+    accuracy_decimals: 1
+    filters: !include
+      file: .temperature_filters.yaml
+      vars:
+        calibration_id: temperature_4_calibration
+
+script:
+  - id: temperature_polling_loop
+    mode: restart
+    then:
+      - while:
+          condition:
+            lambda: return true;
+          then:
+            - component.update: temperature_1
+            - component.update: temperature_2
+            - component.update: temperature_3
+            - component.update: temperature_4
+            - delay: !lambda |-
+                float seconds = id(temperature_polling_interval).state;
+                if (isnan(seconds) || seconds < 1.0f) seconds = 5.0f;
+                return (uint32_t) (seconds * 1000.0f);
+
+number:
+  - platform: template
+    name: "Temperature Polling Interval"
+    id: temperature_polling_interval
+    icon: "mdi:timer-outline"
+    unit_of_measurement: "s"
+    entity_category: config
+    min_value: 1
+    max_value: 300
+    step: 1
+    optimistic: true
+    restore_value: true
+    initial_value: 5
+    on_value:
+      then:
+        - script.execute: temperature_polling_loop
+
+  - platform: template
+    name: "Temperature Smoothing Window"
+    id: temperature_smoothing_window
+    icon: "mdi:chart-bell-curve-cumulative"
+    unit_of_measurement: "samples"
+    entity_category: config
+    min_value: 1
+    max_value: 20
+    step: 1
+    optimistic: true
+    restore_value: true
+    initial_value: 4
+
+  - platform: template
+    name: "Temperature Hysteresis"
+    id: temperature_hysteresis
+    icon: "mdi:swap-horizontal"
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 0
+    max_value: 0.05
+    step: 0.01
+    optimistic: true
+    restore_value: true
+    initial_value: 0.02
+
+  - platform: template
+    name: "Temperature 1 Calibration"
+    id: temperature_1_calibration
+    icon: "mdi:thermometer-plus"
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: -5
+    max_value: 5
+    step: 0.05
+    optimistic: true
+    restore_value: true
+    initial_value: 0
+
+  - platform: template
+    name: "Temperature 2 Calibration"
+    id: temperature_2_calibration
+    icon: "mdi:thermometer-plus"
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: -5
+    max_value: 5
+    step: 0.05
+    optimistic: true
+    restore_value: true
+    initial_value: 0
+
+  - platform: template
+    name: "Temperature 3 Calibration"
+    id: temperature_3_calibration
+    icon: "mdi:thermometer-plus"
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: -5
+    max_value: 5
+    step: 0.05
+    optimistic: true
+    restore_value: true
+    initial_value: 0
+
+  - platform: template
+    name: "Temperature 4 Calibration"
+    id: temperature_4_calibration
+    icon: "mdi:thermometer-plus"
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: -5
+    max_value: 5
+    step: 0.05
+    optimistic: true
+    restore_value: true
+    initial_value: 0
+
