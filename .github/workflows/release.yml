@@ -1,20 +1,45 @@
-name: Publish source release
+name: Build release binaries and publish firmware feed
 on:
   push:
     tags: ['v*']
 permissions:
   contents: write
+  pages: write
+  id-token: write
 jobs:
   release:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: https://stepyon.github.io/MHRV-monitor-esphome/
     steps:
       - uses: actions/checkout@v4
-      - name: Package public source (never include secrets or CI binaries)
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install ESPHome
+        run: pip install 'esphome==2026.11.0'
+      - name: Compile release from tag version
+        shell: bash
         run: |
-          mkdir -p dist/mhrv-monitor
-          cp mhrv-monitor.yaml .temperature_filters.yaml secrets.example.yaml README.md dist/mhrv-monitor/
-          tar -C dist -czf mhrv-monitor-source.tar.gz mhrv-monitor
-      - name: Publish GitHub release
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "Release version: ${VERSION}"
+          esphome -s firmware_version "${VERSION}" config mhrv-monitor.yaml
+          esphome -s firmware_version "${VERSION}" compile mhrv-monitor.yaml
+          python scripts/package_release.py "${VERSION}"
+      - name: Publish GitHub Release (factory image, OTA image, source archive)
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${GITHUB_REF_NAME}" mhrv-monitor-source.tar.gz --title "${GITHUB_REF_NAME}" --generate-notes
+        run: gh release create "${GITHUB_REF_NAME}" dist/* --title "${GITHUB_REF_NAME}" --generate-notes --verify-tag
+      - name: Configure GitHub Pages (may need enabling in repo Settings)
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - name: Upload firmware feed to GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - name: Deploy firmware feed
+        id: deployment
+        uses: actions/deploy-pages@v4
