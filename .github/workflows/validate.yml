@@ -25,6 +25,11 @@ jobs:
         run: |
           test -n "$(find .esphome/build -name 'firmware.factory.bin' -print -quit)"
           test -n "$(find .esphome/build -name 'firmware.ota.bin' -print -quit)"
+      - name: Smoke-test release packager and manifests
+        run: |
+          python scripts/package_release.py 0.1.0-ci
+          python -m json.tool site/firmware/manifest.json > /dev/null
+          python -m json.tool site/firmware/manifest.web.json > /dev/null
       - name: Stage test binaries outside ESPHome hidden build directory
         run: |
           mkdir -p test-binaries
