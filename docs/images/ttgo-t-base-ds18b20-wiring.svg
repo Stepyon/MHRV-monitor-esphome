@@ -18,7 +18,7 @@
 <g font-family="Arial,Helvetica,sans-serif" font-size="19" fill="#fff">
 <text x="265" y="250">3V3</text><text x="250" y="352">GPIO4</text><text x="270" y="457">GND</text>
 </g>
-<!-- Three common rails, no crossing means a junction unless marked with a solid dot. -->
+<!-- White outline at crossings means no electrical junction. Connection points on a rail are marked by dots. -->
 <path d="M400 247H1405" stroke="#db464d" stroke-width="6" fill="none"/>
 <path d="M400 350H1405" stroke="#f1ae26" stroke-width="6" fill="none"/>
 <path d="M400 453H1405" stroke="#506680" stroke-width="6" fill="none"/>
@@ -36,9 +36,9 @@
 <text x="580" y="305" font-family="Arial,Helvetica,sans-serif" font-size="13" fill="#724f2b">1 resistor for bus</text>
 
 <g>
-<path d="M640 247V552" stroke="#db464d" stroke-width="5" fill="none"/><circle cx="640" cy="247" r="7" fill="#db464d" stroke="white" stroke-width="2"/>
-<path d="M700 350V552" stroke="#f1ae26" stroke-width="5" fill="none"/><circle cx="700" cy="350" r="7" fill="#f1ae26" stroke="white" stroke-width="2"/>
-<path d="M760 453V552" stroke="#506680" stroke-width="5" fill="none"/><circle cx="760" cy="453" r="7" fill="#506680" stroke="white" stroke-width="2"/>
+<path d="M640 247V552" stroke="white" stroke-width="16" fill="none"/><path d="M640 247V552" stroke="#db464d" stroke-width="5" fill="none"/><circle cx="640" cy="247" r="7" fill="#db464d" stroke="white" stroke-width="2"/>
+<path d="M700 350V552" stroke="white" stroke-width="16" fill="none"/><path d="M700 350V552" stroke="#f1ae26" stroke-width="5" fill="none"/><circle cx="700" cy="350" r="7" fill="#f1ae26" stroke="white" stroke-width="2"/>
+<path d="M760 453V552" stroke="white" stroke-width="16" fill="none"/><path d="M760 453V552" stroke="#506680" stroke-width="5" fill="none"/><circle cx="760" cy="453" r="7" fill="#506680" stroke="white" stroke-width="2"/>
 <rect x="610" y="549" width="181" height="110" rx="13" fill="#eef3f8" stroke="#91a7b9" stroke-width="2.5"/>
 <circle cx="640" cy="552" r="7" fill="#db464d" stroke="#fff" stroke-width="2"/>
 <circle cx="700" cy="552" r="7" fill="#f1ae26" stroke="#fff" stroke-width="2"/>
@@ -50,9 +50,9 @@
 </g>
 
 <g>
-<path d="M840 247V552" stroke="#db464d" stroke-width="5" fill="none"/><circle cx="840" cy="247" r="7" fill="#db464d" stroke="white" stroke-width="2"/>
-<path d="M900 350V552" stroke="#f1ae26" stroke-width="5" fill="none"/><circle cx="900" cy="350" r="7" fill="#f1ae26" stroke="white" stroke-width="2"/>
-<path d="M960 453V552" stroke="#506680" stroke-width="5" fill="none"/><circle cx="960" cy="453" r="7" fill="#506680" stroke="white" stroke-width="2"/>
+<path d="M840 247V552" stroke="white" stroke-width="16" fill="none"/><path d="M840 247V552" stroke="#db464d" stroke-width="5" fill="none"/><circle cx="840" cy="247" r="7" fill="#db464d" stroke="white" stroke-width="2"/>
+<path d="M900 350V552" stroke="white" stroke-width="16" fill="none"/><path d="M900 350V552" stroke="#f1ae26" stroke-width="5" fill="none"/><circle cx="900" cy="350" r="7" fill="#f1ae26" stroke="white" stroke-width="2"/>
+<path d="M960 453V552" stroke="white" stroke-width="16" fill="none"/><path d="M960 453V552" stroke="#506680" stroke-width="5" fill="none"/><circle cx="960" cy="453" r="7" fill="#506680" stroke="white" stroke-width="2"/>
 <rect x="810" y="549" width="181" height="110" rx="13" fill="#eef3f8" stroke="#91a7b9" stroke-width="2.5"/>
 <circle cx="840" cy="552" r="7" fill="#db464d" stroke="#fff" stroke-width="2"/>
 <circle cx="900" cy="552" r="7" fill="#f1ae26" stroke="#fff" stroke-width="2"/>
@@ -64,9 +64,9 @@
 </g>
 
 <g>
-<path d="M1040 247V552" stroke="#db464d" stroke-width="5" fill="none"/><circle cx="1040" cy="247" r="7" fill="#db464d" stroke="white" stroke-width="2"/>
-<path d="M1100 350V552" stroke="#f1ae26" stroke-width="5" fill="none"/><circle cx="1100" cy="350" r="7" fill="#f1ae26" stroke="white" stroke-width="2"/>
-<path d="M1160 453V552" stroke="#506680" stroke-width="5" fill="none"/><circle cx="1160" cy="453" r="7" fill="#506680" stroke="white" stroke-width="2"/>
+<path d="M1040 247V552" stroke="white" stroke-width="16" fill="none"/><path d="M1040 247V552" stroke="#db464d" stroke-width="5" fill="none"/><circle cx="1040" cy="247" r="7" fill="#db464d" stroke="white" stroke-width="2"/>
+<path d="M1100 350V552" stroke="white" stroke-width="16" fill="none"/><path d="M1100 350V552" stroke="#f1ae26" stroke-width="5" fill="none"/><circle cx="1100" cy="350" r="7" fill="#f1ae26" stroke="white" stroke-width="2"/>
+<path d="M1160 453V552" stroke="white" stroke-width="16" fill="none"/><path d="M1160 453V552" stroke="#506680" stroke-width="5" fill="none"/><circle cx="1160" cy="453" r="7" fill="#506680" stroke="white" stroke-width="2"/>
 <rect x="1010" y="549" width="181" height="110" rx="13" fill="#eef3f8" stroke="#91a7b9" stroke-width="2.5"/>
 <circle cx="1040" cy="552" r="7" fill="#db464d" stroke="#fff" stroke-width="2"/>
 <circle cx="1100" cy="552" r="7" fill="#f1ae26" stroke="#fff" stroke-width="2"/>
@@ -78,9 +78,9 @@
 </g>
 
 <g>
-<path d="M1240 247V552" stroke="#db464d" stroke-width="5" fill="none"/><circle cx="1240" cy="247" r="7" fill="#db464d" stroke="white" stroke-width="2"/>
-<path d="M1300 350V552" stroke="#f1ae26" stroke-width="5" fill="none"/><circle cx="1300" cy="350" r="7" fill="#f1ae26" stroke="white" stroke-width="2"/>
-<path d="M1360 453V552" stroke="#506680" stroke-width="5" fill="none"/><circle cx="1360" cy="453" r="7" fill="#506680" stroke="white" stroke-width="2"/>
+<path d="M1240 247V552" stroke="white" stroke-width="16" fill="none"/><path d="M1240 247V552" stroke="#db464d" stroke-width="5" fill="none"/><circle cx="1240" cy="247" r="7" fill="#db464d" stroke="white" stroke-width="2"/>
+<path d="M1300 350V552" stroke="white" stroke-width="16" fill="none"/><path d="M1300 350V552" stroke="#f1ae26" stroke-width="5" fill="none"/><circle cx="1300" cy="350" r="7" fill="#f1ae26" stroke="white" stroke-width="2"/>
+<path d="M1360 453V552" stroke="white" stroke-width="16" fill="none"/><path d="M1360 453V552" stroke="#506680" stroke-width="5" fill="none"/><circle cx="1360" cy="453" r="7" fill="#506680" stroke="white" stroke-width="2"/>
 <rect x="1210" y="549" width="181" height="110" rx="13" fill="#eef3f8" stroke="#91a7b9" stroke-width="2.5"/>
 <circle cx="1240" cy="552" r="7" fill="#db464d" stroke="#fff" stroke-width="2"/>
 <circle cx="1300" cy="552" r="7" fill="#f1ae26" stroke="#fff" stroke-width="2"/>
