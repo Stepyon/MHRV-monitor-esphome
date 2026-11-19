@@ -58,6 +58,8 @@ This describes how my unit is powered, **not a manufacturer-approved modificatio
 
 ### Connect four DS18B20 temperature probes
 
+**Temperature sensors:** [Waterproof DS18B20 probes on AliExpress](https://s.click.aliexpress.com/e/_c3SM10gh) *(affiliate link — I may earn a commission if you purchase through this link, at no extra cost to you).* The project uses four DS18B20 probes; check the listing and connector/wire specifications before ordering.
+
 ![Connection diagram showing four DS18B20 probes wired in parallel to TTGO T-Base GPIO4 with a single 4.7 kΩ pull-up resistor](docs/images/ttgo-t-base-ds18b20-wiring.svg)
 
 All **four probes are wired in parallel**, using the same three board pins:
