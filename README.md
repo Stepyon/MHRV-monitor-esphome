@@ -23,11 +23,7 @@ Open-source, credential-free ESP8266 firmware for a four-probe mechanical heat r
 
 ## Hardware and wiring
 
-The illustrated board below is the **LILYGO TTGO T-Base (ESP8266)**, the hardware used for this project. It has **4 MB flash**, a Micro-USB port, and a D1 mini-compatible ESP8266 pin layout. Other D1 mini-compatible ESP8266 boards can use the same firmware if wired to the correct GPIO and powered appropriately.
-
-![Illustration of the blue LILYGO TTGO T-Base ESP8266 board](docs/images/ttgo-t-base-board.svg)
-
-*Original board illustration for identification. It is not a literal hole-by-hole pinout; consult the labels printed on your own PCB.*
+The **LILYGO TTGO T-Base (ESP8266)** is the hardware used for this project. It has **4 MB flash**, a Micro-USB port, and a D1 mini-compatible ESP8266 pin layout. Other D1 mini-compatible ESP8266 boards can use the same firmware if wired to the correct GPIO and powered appropriately.
 
 ### Connect four DS18B20 temperature probes
 
