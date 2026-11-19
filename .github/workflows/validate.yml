@@ -1,0 +1,32 @@
+name: Validate and build ESPHome firmware
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install ESPHome
+        run: pip install 'esphome==2026.11.0'
+      - name: Create dummy validation credentials (not real device secrets)
+        run: |
+          cat > secrets.yaml <<'EOF'
+          wifi_ssid: "CI-ONLY-SSID"
+          wifi_password: "CI-ONLY-PASSWORD"
+          api_encryption_key: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+          fallback_ap_password: "CI-only-setup-pass"
+          EOF
+      - name: Validate YAML
+        run: esphome config mhrv-monitor.yaml
+      - name: Compile
+        run: esphome compile mhrv-monitor.yaml
+      # Do not upload CI binaries: their credentials are shared/test-only.
