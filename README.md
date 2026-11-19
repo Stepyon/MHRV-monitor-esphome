@@ -263,6 +263,123 @@ After deploying the new firmware and verifying all four mapping dropdowns, you c
 
 The four Dallas sensor addresses depend on individual physical probes and are intentionally **not** committed. The personal original installation had offsets 0, +0.05, −0.10, and −0.20 °C, which can be entered in HA if suitable for your probes.
 
+## Example Home Assistant dashboard
+
+This compact Lovelace card displays the **four duct temperatures** across the top, followed by the **Supply and Exhaust efficiencies** and their last **24 hours of history**. The operating-mode badge displays **Heating**, **Cooling**, **Neutral**, or **Summer Bypass** (when the device reports `Bypass`).
+
+![Example Home Assistant MHRV dashboard with four temperature chips, two efficiency readings and an operating-mode badge](docs/images/mhrv-dashboard-example.png)
+
+To use this example, install these three custom Home Assistant cards (available through [HACS](https://www.hacs.xyz/)):
+
+- [Mushroom Cards](https://github.com/piitaya/lovelace-mushroom) for the temperature chips.
+- [Mini Graph Card](https://github.com/kalkih/mini-graph-card) for the dual efficiency history graph.
+- [card-mod](https://github.com/thomasloven/lovelace-card-mod) for the coloured operating-mode badge.
+
+In a Home Assistant dashboard, choose **Edit dashboard → Add card → Manual**, then paste the YAML below. You can also copy the standalone file: **[examples/mhrv-efficiency-dashboard.yaml](examples/mhrv-efficiency-dashboard.yaml)**.
+
+**Adjust the entity IDs** to match your installation. The example uses `sensor.mhrv_monitor_...`; automatically discovered names may include a MAC suffix (such as `_4a3f89`) or your own renamed device prefix. The badge is positioned using the mini-graph card's CSS, so you may need to adjust the `top` or `left` values for your theme and screen size.
+
+```yaml
+cards:
+  - alignment: justify
+    chips:
+      - content: >
+          {{ '%.1f' | format(states('sensor.mhrv_monitor_outdoor_air') | float)
+          }}°
+        entity: sensor.mhrv_monitor_outdoor_air
+        icon: mdi:weather-windy
+        icon_color: blue
+        tap_action:
+          action: more-info
+        type: template
+      - content: >
+          {{ '%.1f' | format(states('sensor.mhrv_monitor_supply_air') | float)
+          }}°
+        entity: sensor.mhrv_monitor_supply_air
+        icon: mdi:home-import-outline
+        icon_color: orange
+        tap_action:
+          action: more-info
+        type: template
+      - content: >
+          {{ '%.1f' | format(states('sensor.mhrv_monitor_extract_air') | float)
+          }}°
+        entity: sensor.mhrv_monitor_extract_air
+        icon: mdi:home-export-outline
+        icon_color: orange
+        tap_action:
+          action: more-info
+        type: template
+      - content: >
+          {{ '%.1f' | format(states('sensor.mhrv_monitor_exhaust_air') | float)
+          }}°
+        entity: sensor.mhrv_monitor_exhaust_air
+        icon: mdi:weather-windy-variant
+        icon_color: blue
+        tap_action:
+          action: more-info
+        type: template
+    type: custom:mushroom-chips-card
+  - aggregate_func: avg
+    align_state: center
+    card_mod:
+      style: |
+        .graph__container::after {
+          content: "{{ 'Summer Bypass' if is_state('sensor.mhrv_monitor_operating_mode', 'Bypass') else states('sensor.mhrv_monitor_operating_mode') }}";
+          position: absolute;
+          left: 85%;
+          top: -120px;
+          transform: translateX(-50%);
+          z-index: 20;
+
+          padding: 3px 10px;
+          border-radius: 12px;
+
+          font-size: 12px;
+          font-weight: 600;
+          line-height: 18px;
+
+          color:
+            {% if is_state('sensor.mhrv_monitor_operating_mode', 'Heating') %}
+              var(--orange-color, #ff9800)
+            {% elif is_state('sensor.mhrv_monitor_operating_mode', 'Cooling') %}
+              var(--blue-color, #2196f3)
+            {% elif is_state('sensor.mhrv_monitor_operating_mode', 'Bypass') %}
+              var(--green-color, #4caf50)
+            {% else %}
+              var(--secondary-text-color)
+            {% endif %};
+
+          background: var(--ha-card-background, var(--card-background-color));
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+          pointer-events: none;
+        }
+    decimals: 1
+    entities:
+      - entity: sensor.mhrv_monitor_supply_efficiency
+        name: Supply
+        show_state: true
+      - entity: sensor.mhrv_monitor_exhaust_efficiency
+        name: Exhaust
+        show_state: true
+    font_size: 75
+    height: 75
+    hours_to_show: 24
+    line_width: 3
+    name: MHRV Efficiency
+    points_per_hour: 12
+    show:
+      fill: false
+      icon: false
+      labels: false
+      legend: true
+      name: true
+      points: false
+    smoothing: true
+    type: custom:mini-graph-card
+type: vertical-stack
+```
+
 ## ESP8266 OTA diagnostics and troubleshooting
 
 The diagnostic entities below are exposed through the **ESPHome device page** in Home Assistant. Most have `entity_category: diagnostic` and may appear under Diagnostics rather than the main sensor group.
