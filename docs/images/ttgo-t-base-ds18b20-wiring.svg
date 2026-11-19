@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1490" height="800" viewBox="0 0 1490 800" role="img" aria-labelledby="title desc">
+<title id="title">LILYGO TTGO T-Base with four DS18B20 sensors on GPIO4 and 4.7k pull-up</title>
+<desc id="desc">Functional wiring schematic: all DS18B20 probes are wired in parallel with power VDD to 3V3, data to ESP8266 GPIO4 and ground to GND. A single 4.7 kiloohm resistor connects the 3V3 and data buses. For factory flashing, briefly connect GPIO0 to GND before connecting USB and remove that jumper before normal restart. Pin boxes show logical signals, not physical hole positions.</desc>
+<rect width="1490" height="800" fill="#fff"/>
+<text x="65" y="64" font-family="Arial,Helvetica,sans-serif" font-size="33" fill="#193b54" font-weight="bold">TTGO T-Base · four DS18B20 temperature probes</text>
+<text x="66" y="103" font-family="Arial,Helvetica,sans-serif" font-size="19" fill="#5c7185">All probes share one GPIO4 data bus and one 4.7 kΩ pull-up resistor.</text>
+<rect x="60" y="170" width="350" height="332" rx="22" fill="#185e9d" stroke="#0d3f71" stroke-width="4"/>
+<rect x="80" y="190" width="310" height="45" rx="10" fill="#134a7c"/>
+<text x="235" y="220" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="22" fill="white" font-weight="bold">LILYGO TTGO T-Base</text>
+<text x="235" y="274" font-family="Arial,Helvetica,sans-serif" font-size="18" fill="#e7f3ff" text-anchor="middle">ESP8266 · USB powered</text>
+<text x="105" y="316" font-family="Arial,Helvetica,sans-serif" font-size="15" fill="#b8dcf6">Connect to marked PCB pins:</text>
+<g font-family="Arial,Helvetica,sans-serif" font-size="19" fill="white" font-weight="bold">
+<text x="128" y="358">3V3</text>
+<text x="128" y="409">GPIO4 / “4”</text>
+<text x="128" y="460">GND</text>
+</g>
+<g><circle cx="389" cy="247" r="12" fill="#db464d" stroke="white" stroke-width="4"/><circle cx="389" cy="350" r="12" fill="#f1ae26" stroke="white" stroke-width="4"/><circle cx="389" cy="453" r="12" fill="#506680" stroke="white" stroke-width="4"/></g>
+<g font-family="Arial,Helvetica,sans-serif" font-size="19" fill="#fff">
+<text x="265" y="250">3V3</text><text x="250" y="352">GPIO4</text><text x="270" y="457">GND</text>
+</g>
+<!-- White outline at crossings means no electrical junction. Connection points on a rail are marked by dots. -->
+<path d="M400 247H1405" stroke="#db464d" stroke-width="6" fill="none"/>
+<path d="M400 350H1405" stroke="#f1ae26" stroke-width="6" fill="none"/>
+<path d="M400 453H1405" stroke="#506680" stroke-width="6" fill="none"/>
+<g font-family="Arial,Helvetica,sans-serif" font-size="17" font-weight="bold">
+<rect x="440" y="213" width="91" height="29" rx="5" fill="white"/><text x="447" y="234" fill="#b02c37">3.3 V</text>
+<rect x="440" y="316" width="93" height="29" rx="5" fill="white"/><text x="447" y="337" fill="#9c6e11">DATA</text>
+<rect x="440" y="419" width="93" height="29" rx="5" fill="white"/><text x="447" y="440" fill="#455f7a">GND</text>
+</g>
+<!-- Single pull-up: VDD -> resistor -> Data -->
+<path d="M560 247V274" stroke="#db464d" stroke-width="5"/>
+<rect x="547" y="274" width="26" height="47" rx="4" fill="#fff9e8" stroke="#d48a26" stroke-width="3"/>
+<path d="M560 321V350" stroke="#f1ae26" stroke-width="5"/>
+<circle cx="560" cy="247" r="7" fill="#db464d" stroke="white" stroke-width="2"/><circle cx="560" cy="350" r="7" fill="#f1ae26" stroke="white" stroke-width="2"/>
+<text x="580" y="281" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#724f2b" font-weight="bold">4.7 kΩ</text>
+<text x="580" y="305" font-family="Arial,Helvetica,sans-serif" font-size="13" fill="#724f2b">1 resistor for bus</text>
+
+<g>
+<path d="M640 247V552" stroke="white" stroke-width="16" fill="none"/><path d="M640 247V552" stroke="#db464d" stroke-width="5" fill="none"/><circle cx="640" cy="247" r="7" fill="#db464d" stroke="white" stroke-width="2"/>
+<path d="M700 350V552" stroke="white" stroke-width="16" fill="none"/><path d="M700 350V552" stroke="#f1ae26" stroke-width="5" fill="none"/><circle cx="700" cy="350" r="7" fill="#f1ae26" stroke="white" stroke-width="2"/>
+<path d="M760 453V552" stroke="white" stroke-width="16" fill="none"/><path d="M760 453V552" stroke="#506680" stroke-width="5" fill="none"/><circle cx="760" cy="453" r="7" fill="#506680" stroke="white" stroke-width="2"/>
+<rect x="610" y="549" width="181" height="110" rx="13" fill="#eef3f8" stroke="#91a7b9" stroke-width="2.5"/>
+<circle cx="640" cy="552" r="7" fill="#db464d" stroke="#fff" stroke-width="2"/>
+<circle cx="700" cy="552" r="7" fill="#f1ae26" stroke="#fff" stroke-width="2"/>
+<circle cx="760" cy="552" r="7" fill="#506680" stroke="#fff" stroke-width="2"/>
+<text x="700" y="595" font-family="Arial,sans-serif" font-weight="bold" font-size="19" text-anchor="middle" fill="#163950">DS18B20 · 1</text>
+<text x="640" y="629" font-family="Arial,sans-serif" font-size="13" text-anchor="middle" fill="#af3038">VDD</text>
+<text x="700" y="629" font-family="Arial,sans-serif" font-size="13" text-anchor="middle" fill="#ac721a">DATA</text>
+<text x="760" y="629" font-family="Arial,sans-serif" font-size="13" text-anchor="middle" fill="#435a73">GND</text>
+</g>
+
+<g>
+<path d="M840 247V552" stroke="white" stroke-width="16" fill="none"/><path d="M840 247V552" stroke="#db464d" stroke-width="5" fill="none"/><circle cx="840" cy="247" r="7" fill="#db464d" stroke="white" stroke-width="2"/>
+<path d="M900 350V552" stroke="white" stroke-width="16" fill="none"/><path d="M900 350V552" stroke="#f1ae26" stroke-width="5" fill="none"/><circle cx="900" cy="350" r="7" fill="#f1ae26" stroke="white" stroke-width="2"/>
+<path d="M960 453V552" stroke="white" stroke-width="16" fill="none"/><path d="M960 453V552" stroke="#506680" stroke-width="5" fill="none"/><circle cx="960" cy="453" r="7" fill="#506680" stroke="white" stroke-width="2"/>
+<rect x="810" y="549" width="181" height="110" rx="13" fill="#eef3f8" stroke="#91a7b9" stroke-width="2.5"/>
+<circle cx="840" cy="552" r="7" fill="#db464d" stroke="#fff" stroke-width="2"/>
+<circle cx="900" cy="552" r="7" fill="#f1ae26" stroke="#fff" stroke-width="2"/>
+<circle cx="960" cy="552" r="7" fill="#506680" stroke="#fff" stroke-width="2"/>
+<text x="900" y="595" font-family="Arial,sans-serif" font-weight="bold" font-size="19" text-anchor="middle" fill="#163950">DS18B20 · 2</text>
+<text x="840" y="629" font-family="Arial,sans-serif" font-size="13" text-anchor="middle" fill="#af3038">VDD</text>
+<text x="900" y="629" font-family="Arial,sans-serif" font-size="13" text-anchor="middle" fill="#ac721a">DATA</text>
+<text x="960" y="629" font-family="Arial,sans-serif" font-size="13" text-anchor="middle" fill="#435a73">GND</text>
+</g>
+
+<g>
+<path d="M1040 247V552" stroke="white" stroke-width="16" fill="none"/><path d="M1040 247V552" stroke="#db464d" stroke-width="5" fill="none"/><circle cx="1040" cy="247" r="7" fill="#db464d" stroke="white" stroke-width="2"/>
+<path d="M1100 350V552" stroke="white" stroke-width="16" fill="none"/><path d="M1100 350V552" stroke="#f1ae26" stroke-width="5" fill="none"/><circle cx="1100" cy="350" r="7" fill="#f1ae26" stroke="white" stroke-width="2"/>
+<path d="M1160 453V552" stroke="white" stroke-width="16" fill="none"/><path d="M1160 453V552" stroke="#506680" stroke-width="5" fill="none"/><circle cx="1160" cy="453" r="7" fill="#506680" stroke="white" stroke-width="2"/>
+<rect x="1010" y="549" width="181" height="110" rx="13" fill="#eef3f8" stroke="#91a7b9" stroke-width="2.5"/>
+<circle cx="1040" cy="552" r="7" fill="#db464d" stroke="#fff" stroke-width="2"/>
+<circle cx="1100" cy="552" r="7" fill="#f1ae26" stroke="#fff" stroke-width="2"/>
+<circle cx="1160" cy="552" r="7" fill="#506680" stroke="#fff" stroke-width="2"/>
+<text x="1100" y="595" font-family="Arial,sans-serif" font-weight="bold" font-size="19" text-anchor="middle" fill="#163950">DS18B20 · 3</text>
+<text x="1040" y="629" font-family="Arial,sans-serif" font-size="13" text-anchor="middle" fill="#af3038">VDD</text>
+<text x="1100" y="629" font-family="Arial,sans-serif" font-size="13" text-anchor="middle" fill="#ac721a">DATA</text>
+<text x="1160" y="629" font-family="Arial,sans-serif" font-size="13" text-anchor="middle" fill="#435a73">GND</text>
+</g>
+
+<g>
+<path d="M1240 247V552" stroke="white" stroke-width="16" fill="none"/><path d="M1240 247V552" stroke="#db464d" stroke-width="5" fill="none"/><circle cx="1240" cy="247" r="7" fill="#db464d" stroke="white" stroke-width="2"/>
+<path d="M1300 350V552" stroke="white" stroke-width="16" fill="none"/><path d="M1300 350V552" stroke="#f1ae26" stroke-width="5" fill="none"/><circle cx="1300" cy="350" r="7" fill="#f1ae26" stroke="white" stroke-width="2"/>
+<path d="M1360 453V552" stroke="white" stroke-width="16" fill="none"/><path d="M1360 453V552" stroke="#506680" stroke-width="5" fill="none"/><circle cx="1360" cy="453" r="7" fill="#506680" stroke="white" stroke-width="2"/>
+<rect x="1210" y="549" width="181" height="110" rx="13" fill="#eef3f8" stroke="#91a7b9" stroke-width="2.5"/>
+<circle cx="1240" cy="552" r="7" fill="#db464d" stroke="#fff" stroke-width="2"/>
+<circle cx="1300" cy="552" r="7" fill="#f1ae26" stroke="#fff" stroke-width="2"/>
+<circle cx="1360" cy="552" r="7" fill="#506680" stroke="#fff" stroke-width="2"/>
+<text x="1300" y="595" font-family="Arial,sans-serif" font-weight="bold" font-size="19" text-anchor="middle" fill="#163950">DS18B20 · 4</text>
+<text x="1240" y="629" font-family="Arial,sans-serif" font-size="13" text-anchor="middle" fill="#af3038">VDD</text>
+<text x="1300" y="629" font-family="Arial,sans-serif" font-size="13" text-anchor="middle" fill="#ac721a">DATA</text>
+<text x="1360" y="629" font-family="Arial,sans-serif" font-size="13" text-anchor="middle" fill="#435a73">GND</text>
+</g>
+<text x="65" y="561" font-family="Arial,Helvetica,sans-serif" font-size="15" fill="#3c5a70">Use waterproof probes;</text>
+<text x="65" y="585" font-family="Arial,Helvetica,sans-serif" font-size="15" fill="#3c5a70">keep PCB and splices dry.</text>
+<text x="65" y="612" font-family="Arial,Helvetica,sans-serif" font-size="15" fill="#3c5a70">No 5 V on GPIO pins.</text>
+<rect x="60" y="690" width="1370" height="77" rx="14" fill="#edf4fa" stroke="#9bb8ce" stroke-width="2"/>
+<text x="80" y="718" font-family="Arial,Helvetica,sans-serif" font-size="21" fill="#1a4261" font-weight="bold">USB factory flashing: GPIO0 → GND only during boot</text>
+<text x="81" y="744" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#345d7a">Unplug USB → connect a temporary GPIO0-to-GND jumper → plug USB in → flash → unplug → remove jumper → reconnect USB.</text>
+<text x="1453" y="789" font-family="Arial,Helvetica,sans-serif" font-size="13" fill="#71869a" text-anchor="end">Functional circuit, not physical pin placement. Check board silkscreen.</text>
+</svg>
