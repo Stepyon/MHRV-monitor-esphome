@@ -45,6 +45,8 @@ Connect **one 4.7 kΩ resistor between 3V3 and GPIO4/DATA**, shared by all four 
 
 ### Install the temperature probes in the MVHR ducting
 
+**Installation precautions:** Ductwork varies by manufacturer. Before drilling, check the MVHR manufacturer's servicing and warranty requirements, verify the exact duct location, and make sure the sensor/adapter will not obstruct airflow or interfere with dampers, fans or cleaning access. Remove all swarf and debris. This is a documented example of a user installation, **not a manufacturer-approved procedure, do on your own risk only**.
+
 The four DS18B20 probes should measure air temperature **inside the four ventilation ducts**, close to the MVHR/MHRV unit. The installation shown below uses a **custom 3D-printed sensor adapter** to hold each waterproof probe in the duct wall.
 
 ![Installed DS18B20 sensor adapter in an insulated MVHR duct just above the unit](docs/images/mhrv-duct-probe-installation.jpg)
@@ -64,8 +66,6 @@ The four DS18B20 probes should measure air temperature **inside the four ventila
 7. **Restore the insulation and check operation.** Carefully reseal the foil/vapour barrier around the cable and adapter so the duct stays insulated. Repeat for all **four** ducts, reconnect the probes to the common GPIO4 bus, restore power, and confirm all four temperature readings are available. Finally assign each physical probe to **Outdoor Air**, **Supply Air**, **Extract Air** and **Exhaust Air** in Home Assistant.
 
 **Installation order:** Fit and glue each **empty adapter** into the duct, allow the adhesive to cure fully, and **only then insert its temperature sensor**. The probe itself is a removable press-fit and must not be glued.
-
-**Installation precautions:** Ductwork varies by manufacturer. Before drilling, check the MVHR manufacturer's servicing and warranty requirements, verify the exact duct location, and make sure the sensor/adapter will not obstruct airflow or interfere with dampers, fans or cleaning access. Remove all swarf and debris. This is a documented example of a user installation, **not a manufacturer-approved procedure, do on your own risk only**.
 
 ### Enter USB flashing mode (TTGO T-Base)
 
