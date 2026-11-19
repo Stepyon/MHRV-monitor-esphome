@@ -19,10 +19,12 @@ jobs:
         run: pip install 'esphome==2026.11.0'
       - name: Create dummy validation credentials (not real device secrets)
         run: |
-          cat > secrets.yaml <<'EOF'
+          # ESPHome 2026.11 rejects all-zero Noise keys. Generate a fresh
+          # valid test-only key for each run, never a real device credential.
+          cat > secrets.yaml <<EOF
           wifi_ssid: "CI-ONLY-SSID"
           wifi_password: "CI-ONLY-PASSWORD"
-          api_encryption_key: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+          api_encryption_key: "$(openssl rand -base64 32)"
           fallback_ap_password: "CI-only-setup-pass"
           EOF
       - name: Validate YAML
