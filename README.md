@@ -413,4 +413,8 @@ The optional `secrets.example.yaml` illustrates how to hold private credentials 
 
 ## License
 
-No license has been selected yet. Add a LICENSE file before encouraging third-party redistribution or contributions.
+**MIT License — Copyright (c) 2026 Stepyon.** See the [LICENSE](LICENSE) file for the full terms.
+
+The original project firmware source, documentation, diagrams, photographs, and 3D-printable sensor adapter in this repository are made available under the MIT License, unless an individual file states otherwise. You may use, modify, distribute, and incorporate them into commercial projects, provided the copyright and license notice are retained.
+
+This license applies to material the project author has the rights to license; it does **not** replace the licenses of third-party components, dependencies (including ESPHome), linked services, or separately credited material.
