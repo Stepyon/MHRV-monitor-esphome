@@ -280,19 +280,6 @@ The diagnostic entities below are exposed through the **ESPHome device page** in
 
 All added diagnostics are **read-only**. No new `restore_value` controls are introduced, to avoid shifting the order of ESP8266 persisted preferences; the four existing probe mapping selects and all seven existing numeric settings remain in their original order.
 
-### OTA Wi-Fi persistence test
-
-On a device already running `v0.2.0`, **record its Wi-Fi and persistent configuration before testing**. Change one or more nondefault values, then power-cycle and confirm they persist. Next, install the newly tagged diagnostic release using the Home Assistant update entity. Check:
-
-1. Whether Home Assistant automatically reconnects (without re-entering Wi-Fi credentials) and retained the per-device API key.
-2. Whether the probe dropdown mappings and numeric calibration/smoothing/polling values retain their previous values.
-3. The **Flash Chip Size**, **Reset Reason** and **Device Information** diagnostics after reconnecting.
-4. Whether a second OTA within the same preference layout preserves all settings.
-
-If Wi-Fi is lost again, rejoin the fallback **MHRV Monitor Setup** AP, visit `http://192.168.4.1` and provision your home Wi-Fi again. The installed firmware should not require USB flashing. If Home Assistant no longer connects, check whether the API key also reset.
-
-**Important:** The diagnosed v0.1.0 → v0.2.0 Wi-Fi loss may have been caused by an ESPHome 2026 preference-slot ordering problem (see [ESPHome issue #22693](https://github.com/esphome/esphome/issues/22693)) rather than insufficient 4 MB flash capacity. This release only adds diagnostics and **does not claim to fix preference corruption**; see [our tracking issue #3](https://github.com/Stepyon/MHRV-monitor-esphome/issues/3).
-
 ## Entity naming in Home Assistant
 
 The firmware keeps `esphome.name_add_mac_suffix: true` so that every ESP8266 flashed from the **same public factory image** has a unique hostname for mDNS and Home Assistant discovery. On some Home Assistant versions, that suffix is incorporated into the **generated entity IDs**.
