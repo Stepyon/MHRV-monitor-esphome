@@ -78,6 +78,11 @@ sensor:
       file: .temperature_filters.yaml
       vars:
         calibration_id: temperature_1_calibration
+    # Notify the mapped virtual temperatures only when this physical probe
+    # publishes a new (filtered) reading.
+    on_value:
+      then:
+        - script.execute: refresh_air_temperatures
 
   - platform: dallas_temp
     one_wire_id: temperature_bus
@@ -91,6 +96,11 @@ sensor:
       file: .temperature_filters.yaml
       vars:
         calibration_id: temperature_2_calibration
+    # Notify the mapped virtual temperatures only when this physical probe
+    # publishes a new (filtered) reading.
+    on_value:
+      then:
+        - script.execute: refresh_air_temperatures
 
   - platform: dallas_temp
     one_wire_id: temperature_bus
@@ -104,6 +114,11 @@ sensor:
       file: .temperature_filters.yaml
       vars:
         calibration_id: temperature_3_calibration
+    # Notify the mapped virtual temperatures only when this physical probe
+    # publishes a new (filtered) reading.
+    on_value:
+      then:
+        - script.execute: refresh_air_temperatures
 
   - platform: dallas_temp
     one_wire_id: temperature_bus
@@ -117,8 +132,161 @@ sensor:
       file: .temperature_filters.yaml
       vars:
         calibration_id: temperature_4_calibration
+    # Notify the mapped virtual temperatures only when this physical probe
+    # publishes a new (filtered) reading.
+    on_value:
+      then:
+        - script.execute: refresh_air_temperatures
+
+  # Stable, duct-named virtual sensors. Assign the physical probes using
+  # the four HA select entities below; no reflashing required.
+  - platform: template
+    name: "Outdoor Air"
+    id: outdoor_air_temperature
+    device_class: temperature
+    state_class: measurement
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    update_interval: never
+    lambda: |-
+      const auto &probe = id(outdoor_air_probe).current_option();
+      if (probe == "Probe 1") return id(temperature_1).state;
+      if (probe == "Probe 2") return id(temperature_2).state;
+      if (probe == "Probe 3") return id(temperature_3).state;
+      if (probe == "Probe 4") return id(temperature_4).state;
+      return NAN;
+    # Republish on every routed update (including NAN to clear stale values).
+
+  - platform: template
+    name: "Supply Air"
+    id: supply_air_temperature
+    device_class: temperature
+    state_class: measurement
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    update_interval: never
+    lambda: |-
+      const auto &probe = id(supply_air_probe).current_option();
+      if (probe == "Probe 1") return id(temperature_1).state;
+      if (probe == "Probe 2") return id(temperature_2).state;
+      if (probe == "Probe 3") return id(temperature_3).state;
+      if (probe == "Probe 4") return id(temperature_4).state;
+      return NAN;
+    # Republish on every routed update (including NAN to clear stale values).
+
+  - platform: template
+    name: "Extract Air"
+    id: extract_air_temperature
+    device_class: temperature
+    state_class: measurement
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    update_interval: never
+    lambda: |-
+      const auto &probe = id(extract_air_probe).current_option();
+      if (probe == "Probe 1") return id(temperature_1).state;
+      if (probe == "Probe 2") return id(temperature_2).state;
+      if (probe == "Probe 3") return id(temperature_3).state;
+      if (probe == "Probe 4") return id(temperature_4).state;
+      return NAN;
+    # Republish on every routed update (including NAN to clear stale values).
+
+  - platform: template
+    name: "Exhaust Air"
+    id: exhaust_air_temperature
+    device_class: temperature
+    state_class: measurement
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    update_interval: never
+    lambda: |-
+      const auto &probe = id(exhaust_air_probe).current_option();
+      if (probe == "Probe 1") return id(temperature_1).state;
+      if (probe == "Probe 2") return id(temperature_2).state;
+      if (probe == "Probe 3") return id(temperature_3).state;
+      if (probe == "Probe 4") return id(temperature_4).state;
+      return NAN;
+    # Republish on every routed update (including NAN to clear stale values).
+
+
+  # Thermal recovery efficiencies, based on the configured duct temperatures.
+  # Return NAN while a required probe is unassigned or unavailable.
+  - platform: template
+    name: "Supply Efficiency"
+    id: supply_efficiency
+    icon: "mdi:percent"
+    unit_of_measurement: "%"
+    state_class: measurement
+    accuracy_decimals: 1
+    update_interval: never
+    lambda: |-
+      const float fresh = id(outdoor_air_temperature).state;
+      const float supply = id(supply_air_temperature).state;
+      const float extract = id(extract_air_temperature).state;
+      if (isnan(fresh) || isnan(supply) || isnan(extract)) return NAN;
+      const float delta = extract - fresh;
+      if (fabsf(delta) <= 1.0f) return 0.0f;
+      float efficiency = ((supply - fresh) / delta) * 100.0f;
+      efficiency = fminf(100.0f, fmaxf(0.0f, efficiency));
+      return roundf(efficiency * 10.0f) / 10.0f;
+
+  - platform: template
+    name: "Exhaust Efficiency"
+    id: exhaust_efficiency
+    icon: "mdi:percent"
+    unit_of_measurement: "%"
+    state_class: measurement
+    accuracy_decimals: 1
+    update_interval: never
+    lambda: |-
+      const float fresh = id(outdoor_air_temperature).state;
+      const float extract = id(extract_air_temperature).state;
+      const float exhaust = id(exhaust_air_temperature).state;
+      if (isnan(fresh) || isnan(extract) || isnan(exhaust)) return NAN;
+      const float delta = extract - fresh;
+      if (fabsf(delta) <= 1.0f) return 0.0f;
+      float efficiency = ((extract - exhaust) / delta) * 100.0f;
+      efficiency = fminf(100.0f, fmaxf(0.0f, efficiency));
+      return roundf(efficiency * 10.0f) / 10.0f;
+
+text_sensor:
+  - platform: template
+    name: "Operating Mode"
+    id: operating_mode
+    icon: "mdi:hvac"
+    update_interval: never
+    lambda: |-
+      const float fresh = id(outdoor_air_temperature).state;
+      const float supply = id(supply_air_temperature).state;
+      const float extract = id(extract_air_temperature).state;
+      const float exhaust = id(exhaust_air_temperature).state;
+      // Unlike the original HA template, exhaust reads the Exhaust Air
+      // temperature, not Extract Air for a second time.
+      if (isnan(fresh) || isnan(supply) || isnan(extract) || isnan(exhaust))
+        return {"Unknown"};
+      const float delta = extract - fresh;
+      const float delta_abs = fabsf(delta);
+      if (delta_abs < 3.0f) return {"Neutral"};
+      const float supply_transfer = fabsf(supply - fresh) / delta_abs * 100.0f;
+      const float exhaust_transfer = fabsf(extract - exhaust) / delta_abs * 100.0f;
+      if (supply_transfer < 30.0f && exhaust_transfer < 30.0f)
+        return {"Bypass"};
+      if (fresh < extract) return {"Heating"};
+      return {"Cooling"};
 
 script:
+  - id: refresh_air_temperatures
+    mode: restart
+    then:
+      - component.update: outdoor_air_temperature
+      - component.update: supply_air_temperature
+      - component.update: extract_air_temperature
+      - component.update: exhaust_air_temperature
+      # Recompute derived values after all four named temperatures are refreshed.
+      - component.update: supply_efficiency
+      - component.update: exhaust_efficiency
+      - component.update: operating_mode
+
   - id: temperature_polling_loop
     mode: restart
     then:
@@ -134,6 +302,83 @@ script:
                 float seconds = id(temperature_polling_interval).state;
                 if (isnan(seconds) || seconds < 1.0f) seconds = 5.0f;
                 return (uint32_t) (seconds * 1000.0f);
+
+
+# Each dropdown maps a named duct temperature to a physical 1-Wire probe.
+# They are stored on the device and restored after restart or an OTA update.
+# The defaults are only placeholders: assign the actual probes in Home Assistant.
+select:
+  - platform: template
+    name: "Outdoor Air Probe"
+    id: outdoor_air_probe
+    icon: "mdi:swap-horizontal"
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    initial_option: "Unassigned"
+    options:
+      - "Unassigned"
+      - "Probe 1"
+      - "Probe 2"
+      - "Probe 3"
+      - "Probe 4"
+    on_value:
+      then:
+        - script.execute: refresh_air_temperatures
+
+  - platform: template
+    name: "Supply Air Probe"
+    id: supply_air_probe
+    icon: "mdi:swap-horizontal"
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    initial_option: "Unassigned"
+    options:
+      - "Unassigned"
+      - "Probe 1"
+      - "Probe 2"
+      - "Probe 3"
+      - "Probe 4"
+    on_value:
+      then:
+        - script.execute: refresh_air_temperatures
+
+  - platform: template
+    name: "Extract Air Probe"
+    id: extract_air_probe
+    icon: "mdi:swap-horizontal"
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    initial_option: "Unassigned"
+    options:
+      - "Unassigned"
+      - "Probe 1"
+      - "Probe 2"
+      - "Probe 3"
+      - "Probe 4"
+    on_value:
+      then:
+        - script.execute: refresh_air_temperatures
+
+  - platform: template
+    name: "Exhaust Air Probe"
+    id: exhaust_air_probe
+    icon: "mdi:swap-horizontal"
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    initial_option: "Unassigned"
+    options:
+      - "Unassigned"
+      - "Probe 1"
+      - "Probe 2"
+      - "Probe 3"
+      - "Probe 4"
+    on_value:
+      then:
+        - script.execute: refresh_air_temperatures
 
 number:
   - platform: template
