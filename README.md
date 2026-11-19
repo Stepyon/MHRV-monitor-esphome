@@ -27,6 +27,28 @@ The **LILYGO TTGO T-Base (ESP8266)** is the hardware used for this project. It h
 
 **Reference MVHR unit:** This project was installed and tested on a **Vent-Axia Kinetic Advance S**. The duct sensor mounting photos and installation notes show this setup. The temperature-monitoring firmware is not specific to this ventilation model; check other units' duct layouts and manufacturer instructions before fitting sensors.
 
+### Power the TTGO T-Base
+
+The **LILYGO TTGO T-Base (ESP8266)** can be powered using its Micro-USB port or a suitable external low-voltage supply connected to the corresponding power pins:
+
+| Power source | Board connection | Notes |
+| --- | --- | --- |
+| USB power | Micro-USB connector | Convenient for initial flashing and testing |
+| **Regulated 5 V DC** | **`5V` and `GND`** | Uses the board's onboard 3.3 V regulation |
+| **Regulated 3.3 V DC** | **`3V3` and `GND`** | Supplies the 3.3 V rail directly; **must not exceed 3.3 V** |
+
+**My installation:** For the **Vent-Axia Kinetic Advance S**, I powered the TTGO T-Base from a **5 V connection on the ventilation unit's main circuit board**: 5 V to the TTGO **`5V` pin**, and the corresponding ground to **`GND`**. This avoids needing a separate USB power supply.
+
+**Important electrical precautions:**
+
+- **Do not assume that any terminal labelled 5 V on an MVHR board is a general-purpose power supply.** Confirm the correct terminal, polarity, regulated output voltage and **available continuous/startup current** using the specific unit's documentation and/or a qualified technician before connecting anything. A signal or LED output may be unsuitable for powering an ESP8266; the Vent-Axia documentation describes a **5 V LED indication output**, not a guaranteed auxiliary supply for third-party electronics.
+- **Isolate the ventilation unit from mains power before opening its electrical compartment or connecting wires.** Mains voltage is present in the equipment. If you are not qualified to work inside the unit, use an independent certified 5 V USB adapter instead.
+- Use a stable power supply with sufficient headroom for **ESP8266 Wi-Fi current peaks** and the connected probes. Protect and secure the wires, maintain separation from mains wiring, and avoid exposed conductors or shorts.
+- **Never connect 5 V to `3V3`, `GPIO4`, or any other ESP8266 GPIO.** The DS18B20 sensors in the wiring diagram are still supplied from the **3V3** rail even when the TTGO itself is powered from 5 V.
+- Avoid connecting external power and USB power **at the same time** unless you have confirmed the board's power-path/backfeed protection supports it. Disconnect the external supply when programming over USB.
+
+This describes how my unit is powered, **not a manufacturer-approved modification** or a guarantee that every Vent-Axia control-board revision provides an appropriate 5 V supply.
+
 ### Connect four DS18B20 temperature probes
 
 ![Connection diagram showing four DS18B20 probes wired in parallel to TTGO T-Base GPIO4 with a single 4.7 kΩ pull-up resistor](docs/images/ttgo-t-base-ds18b20-wiring.svg)
