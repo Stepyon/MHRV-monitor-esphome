@@ -149,15 +149,13 @@ sensor:
     accuracy_decimals: 1
     update_interval: never
     lambda: |-
-      const auto &probe = id(outdoor_air_probe).state;
+      const auto &probe = id(outdoor_air_probe).current_option();
       if (probe == "Probe 1") return id(temperature_1).state;
       if (probe == "Probe 2") return id(temperature_2).state;
       if (probe == "Probe 3") return id(temperature_3).state;
       if (probe == "Probe 4") return id(temperature_4).state;
       return NAN;
-    # Avoid re-publishing unaffected roles when another probe updates.
-    filters:
-      - delta: 0.05
+    # Republish on every routed update (including NAN to clear stale values).
 
   - platform: template
     name: "Supply Air"
@@ -168,15 +166,13 @@ sensor:
     accuracy_decimals: 1
     update_interval: never
     lambda: |-
-      const auto &probe = id(supply_air_probe).state;
+      const auto &probe = id(supply_air_probe).current_option();
       if (probe == "Probe 1") return id(temperature_1).state;
       if (probe == "Probe 2") return id(temperature_2).state;
       if (probe == "Probe 3") return id(temperature_3).state;
       if (probe == "Probe 4") return id(temperature_4).state;
       return NAN;
-    # Avoid re-publishing unaffected roles when another probe updates.
-    filters:
-      - delta: 0.05
+    # Republish on every routed update (including NAN to clear stale values).
 
   - platform: template
     name: "Extract Air"
@@ -187,15 +183,13 @@ sensor:
     accuracy_decimals: 1
     update_interval: never
     lambda: |-
-      const auto &probe = id(extract_air_probe).state;
+      const auto &probe = id(extract_air_probe).current_option();
       if (probe == "Probe 1") return id(temperature_1).state;
       if (probe == "Probe 2") return id(temperature_2).state;
       if (probe == "Probe 3") return id(temperature_3).state;
       if (probe == "Probe 4") return id(temperature_4).state;
       return NAN;
-    # Avoid re-publishing unaffected roles when another probe updates.
-    filters:
-      - delta: 0.05
+    # Republish on every routed update (including NAN to clear stale values).
 
   - platform: template
     name: "Exhaust Air"
@@ -206,15 +200,79 @@ sensor:
     accuracy_decimals: 1
     update_interval: never
     lambda: |-
-      const auto &probe = id(exhaust_air_probe).state;
+      const auto &probe = id(exhaust_air_probe).current_option();
       if (probe == "Probe 1") return id(temperature_1).state;
       if (probe == "Probe 2") return id(temperature_2).state;
       if (probe == "Probe 3") return id(temperature_3).state;
       if (probe == "Probe 4") return id(temperature_4).state;
       return NAN;
-    # Avoid re-publishing unaffected roles when another probe updates.
-    filters:
-      - delta: 0.05
+    # Republish on every routed update (including NAN to clear stale values).
+
+
+  # Thermal recovery efficiencies, based on the configured duct temperatures.
+  # Return NAN while a required probe is unassigned or unavailable.
+  - platform: template
+    name: "Supply Efficiency"
+    id: supply_efficiency
+    icon: "mdi:percent"
+    unit_of_measurement: "%"
+    state_class: measurement
+    accuracy_decimals: 1
+    update_interval: never
+    lambda: |-
+      const float fresh = id(outdoor_air_temperature).state;
+      const float supply = id(supply_air_temperature).state;
+      const float extract = id(extract_air_temperature).state;
+      if (isnan(fresh) || isnan(supply) || isnan(extract)) return NAN;
+      const float delta = extract - fresh;
+      if (fabsf(delta) <= 1.0f) return 0.0f;
+      float efficiency = ((supply - fresh) / delta) * 100.0f;
+      efficiency = fminf(100.0f, fmaxf(0.0f, efficiency));
+      return roundf(efficiency * 10.0f) / 10.0f;
+
+  - platform: template
+    name: "Exhaust Efficiency"
+    id: exhaust_efficiency
+    icon: "mdi:percent"
+    unit_of_measurement: "%"
+    state_class: measurement
+    accuracy_decimals: 1
+    update_interval: never
+    lambda: |-
+      const float fresh = id(outdoor_air_temperature).state;
+      const float extract = id(extract_air_temperature).state;
+      const float exhaust = id(exhaust_air_temperature).state;
+      if (isnan(fresh) || isnan(extract) || isnan(exhaust)) return NAN;
+      const float delta = extract - fresh;
+      if (fabsf(delta) <= 1.0f) return 0.0f;
+      float efficiency = ((extract - exhaust) / delta) * 100.0f;
+      efficiency = fminf(100.0f, fmaxf(0.0f, efficiency));
+      return roundf(efficiency * 10.0f) / 10.0f;
+
+text_sensor:
+  - platform: template
+    name: "Operating Mode"
+    id: operating_mode
+    icon: "mdi:hvac"
+    update_interval: never
+    lambda: |-
+      const float fresh = id(outdoor_air_temperature).state;
+      const float supply = id(supply_air_temperature).state;
+      const float extract = id(extract_air_temperature).state;
+      const float exhaust = id(exhaust_air_temperature).state;
+      // Unlike the original HA template, exhaust reads the Exhaust Air
+      // temperature, not Extract Air for a second time.
+      if (isnan(fresh) || isnan(supply) || isnan(extract) || isnan(exhaust))
+        return {"Unknown"};
+      const float delta = extract - fresh;
+      const float delta_abs = fabsf(delta);
+      if (delta_abs < 3.0f) return {"Neutral"};
+      const float supply_transfer = fabsf(supply - fresh) / delta_abs * 100.0f;
+      const float exhaust_transfer = fabsf(extract - exhaust) / delta_abs * 100.0f;
+      if (supply_transfer < 30.0f && exhaust_transfer < 30.0f)
+        return {"Bypass"};
+      if (fresh < extract) return {"Heating"};
+      return {"Cooling"};
 
 script:
   - id: refresh_air_temperatures
@@ -224,6 +282,10 @@ script:
       - component.update: supply_air_temperature
       - component.update: extract_air_temperature
       - component.update: exhaust_air_temperature
+      # Recompute derived values after all four named temperatures are refreshed.
+      - component.update: supply_efficiency
+      - component.update: exhaust_efficiency
+      - component.update: operating_mode
 
   - id: temperature_polling_loop
     mode: restart
