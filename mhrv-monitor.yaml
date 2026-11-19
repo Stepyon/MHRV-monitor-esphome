@@ -253,8 +253,9 @@ select:
     entity_category: config
     optimistic: true
     restore_value: true
-    initial_option: "Probe 1"
+    initial_option: "Unassigned"
     options:
+      - "Unassigned"
       - "Probe 1"
       - "Probe 2"
       - "Probe 3"
@@ -270,8 +271,9 @@ select:
     entity_category: config
     optimistic: true
     restore_value: true
-    initial_option: "Probe 2"
+    initial_option: "Unassigned"
     options:
+      - "Unassigned"
       - "Probe 1"
       - "Probe 2"
       - "Probe 3"
@@ -287,8 +289,9 @@ select:
     entity_category: config
     optimistic: true
     restore_value: true
-    initial_option: "Probe 3"
+    initial_option: "Unassigned"
     options:
+      - "Unassigned"
       - "Probe 1"
       - "Probe 2"
       - "Probe 3"
@@ -304,8 +307,9 @@ select:
     entity_category: config
     optimistic: true
     restore_value: true
-    initial_option: "Probe 4"
+    initial_option: "Unassigned"
     options:
+      - "Unassigned"
       - "Probe 1"
       - "Probe 2"
       - "Probe 3"
