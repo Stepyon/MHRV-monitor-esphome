@@ -23,7 +23,7 @@ Open-source, credential-free ESP8266 firmware for a four-probe mechanical heat r
 
 Use a D1 mini-compatible ESP8266 with 4 MB flash if possible, four externally powered DS18B20 probes, and a **4.7 kΩ pull-up** between 3.3 V and DATA. Connect each sensor **VDD → 3.3 V**, **GND → GND**, **DATA → GPIO4 / D2**. Never drive an ESP8266 GPIO with 5 V.
 
-Place your DS18B20 probes in the four ducts. The physical probes appear as the existing **Temperature 1–4** diagnostic measurements (also referred to as **Probe 1–4** in the mapping dropdowns), and four additional sensors expose stable duct-oriented names:
+Place your DS18B20 probes in the four ducts. The physical probes appear as the existing **Temperature 1–4** measurements (also referred to as **Probe 1–4** in the mapping dropdowns), and four additional sensors expose stable duct-oriented names:
 
 | Named temperature | Airflow measurement |
 | --- | --- |
@@ -32,7 +32,7 @@ Place your DS18B20 probes in the four ducts. The physical probes appear as the e
 | **Extract Air** | Air returning from rooms into the ventilation unit |
 | **Exhaust Air** | Air discharged from the unit back outdoors |
 
-**Important:** Probe numbers follow the DS18B20 hardware-address index (0–3), **not physical duct position or wiring order**. Index assignments can change if a sensor is added, removed, or replaced. The four dropdowns let the user correct mapping without reflashing. The mapping choices themselves persist across restarts and normal OTA updates, but aren't a guarantee that the physical probe indexes remain unchanged after hardware replacements.
+**Important:** Probe numbers follow the DS18B20 hardware-address index (0–3), **not physical duct position or wiring order**. Index assignments can change if a sensor is added, removed, or replaced. The four dropdowns let the user assign mapping without reflashing. The mapping choices themselves persist across restarts and normal OTA updates, but aren't a guarantee that the physical probe indexes remain unchanged after hardware replacements.
 
 ## Install the compiled factory image
 
@@ -48,16 +48,16 @@ On the ESPHome device page, find the four dropdowns:
 
 | Mapping control | Initial default (placeholder) |
 | --- | --- |
-| Outdoor Air Probe | Probe 1 |
-| Supply Air Probe | Probe 2 |
-| Extract Air Probe | Probe 3 |
-| Exhaust Air Probe | Probe 4 |
+| Outdoor Air Probe | Unassigned |
+| Supply Air Probe | Unassigned |
+| Extract Air Probe | Unassigned |
+| Exhaust Air Probe | Unassigned |
 
-**These defaults are NOT guaranteed to match your actual ducts.** To identify each probe, temporarily warm or cool the probe tip before placing it in its final location and watch which **Temperature 1–4** reading changes. Then choose that numbered probe for the appropriate duct. The named temperature sensors update as soon as the mapping is changed (provided a reading is available), and maintain stable Home Assistant entity IDs even when mappings change.
+**The four mappings default to Unassigned, so no duct is accidentally given the wrong probe.** To identify each probe, temporarily warm or cool the probe tip before placing it in its final location and watch which **Temperature 1–4** reading changes. Then choose that numbered probe for the appropriate duct. The named temperature sensors update as soon as the mapping is changed (provided a reading is available), and maintain stable Home Assistant entity IDs even when mappings change.
 
 Mappings are saved in ESP8266 flash through `restore_value: true`. The physical sensor calibration and smoothing still apply **before** any duct mapping. For example, changing the Supply Air dropdown to Probe 4 displays **Temperature 4**, including its individual calibration offset and configured smoothing.
 
-For simplicity, the dropdowns don't prevent choosing the same probe for multiple ducts. For correct ventilation monitoring, **assign each probe to exactly one duct**. If hardware sensors are replaced, check the mapping again because index numbering can change.
+Until a role has been assigned, its named temperature is unknown. For simplicity, the dropdowns don't prevent choosing the same probe for multiple ducts. For correct ventilation monitoring, **assign each probe to exactly one duct**. If hardware sensors are replaced, check the mapping again because index numbering can change.
 
 The same compiled binary works for every new supported board: Wi-Fi credentials and the API encryption key are provisioned and stored in device flash, **not inside the public image**. ESPHome limits the initial provisioning window to five minutes; power-cycle the device if the setup window expires.
 
