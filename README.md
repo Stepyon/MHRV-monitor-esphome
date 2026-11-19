@@ -25,6 +25,8 @@ Open-source, ESP8266 firmware for a four-probe mechanical heat recovery ventilat
 
 The **LILYGO TTGO T-Base (ESP8266)** is the hardware used for this project. It has **4 MB flash**, a Micro-USB port, and a D1 mini-compatible ESP8266 pin layout. Other D1 mini-compatible ESP8266 boards can use the same firmware if wired to the correct GPIO and powered appropriately.
 
+**Reference MVHR unit:** This project was installed and tested on a **Vent-Axia Kinetic Advance S**. The duct sensor mounting photos and installation notes show this setup. The temperature-monitoring firmware is not specific to this ventilation model; check other units' duct layouts and manufacturer instructions before fitting sensors.
+
 ### Connect four DS18B20 temperature probes
 
 ![Connection diagram showing four DS18B20 probes wired in parallel to TTGO T-Base GPIO4 with a single 4.7 kΩ pull-up resistor](docs/images/ttgo-t-base-ds18b20-wiring.svg)
