@@ -32,11 +32,9 @@ api:
 provisioning:
   timeout: 5min
 
-# Local encrypted OTA is available to an owner with their per-device API key.
-# HTTP OTA supports upstream versioned releases; see the README security warning.
+# Public firmware updates use HTTP OTA. Do not add unencrypted native OTA:
+# a runtime API key cannot be inherited as a native OTA key at compile time.
 ota:
-  - platform: esphome
-    encryption:
   - platform: http_request
 
 # ESP8266 cannot verify remote TLS server certificates with ESPHome.
