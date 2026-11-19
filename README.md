@@ -1,110 +1,99 @@
-# MHRV Monitor — ESPHome
+# MHRV Monitor (ESPHome)
 
-Wi-Fi temperature monitoring for mechanical heat-recovery ventilation (MHRV/MVHR), using an ESP8266 D1 mini, four DS18B20 digital probes, and Home Assistant.
+Open-source, credential-free ESP8266 firmware for a four-probe mechanical heat recovery ventilation (MHRV / MVHR) temperature monitor. Firmware is designed for a Wemos D1 mini-compatible board, four DS18B20 digital sensors, and Home Assistant.
 
 ## Features
 
-- Four 12-bit temperature channels on a shared 1-Wire GPIO4 (D2) bus.
-- Configurable polling from 1–300 s (default 5 s).
-- Separate adjustable calibration offsets (±5 °C) for all four probes.
-- Sliding-window moving average from 1 to 20 raw samples (default 4).
-- 0.1 °C quantisation and adjustable 0–0.05 °C hysteresis (default 0.02 °C).
-- Only publishes a temperature when it crosses a hysteresis threshold.
-- Home Assistant controls persist after a reboot via ESP8266 flash storage.
-- Encrypted ESPHome native API and authenticated/encrypted OTA using the same per-device key (ESPHome 2026.9+).
-- Wi-Fi fallback hotspot and captive portal.
+- Four 12-bit DS18B20 probes on a shared GPIO4 / D2 1-Wire bus.
+- Configurable polling interval (1–300 seconds; default 5 seconds).
+- Four independent per-sensor calibration offsets (±5 °C in 0.05 °C steps).
+- Sliding-window moving average (1–20 samples; default 4).
+- 0.1 °C quantisation plus user-configurable hysteresis (default 0.02 °C).
+- Device settings saved to flash and restored across restarts.
+- Local encrypted ESPHome native API and OTA, with API key provisioned after setup.
+- **Compiled factory firmware**, installable via USB, with no preprogrammed user credentials.
+- **Published OTA binaries and firmware manifest** with a Home Assistant update entity that checks for updates every 6 hours.
+- Browser-based USB installation via ESP Web Tools (after enabling GitHub Pages).
 
-## Hardware
+**Important security limitation:** This design uses ESP8266 with ESPHome HTTP OTA. Its HTTP client cannot verify TLS server certificates, and the downloaded firmware is only checked against the MD5 provided in the same manifest. A network attacker able to replace both the firmware and manifest could install malicious firmware. This is **not an authenticated update channel**. Only deploy on networks where you accept this risk; prefer an ESP32 with supported signed OTA verification for a security-sensitive product.
 
-Use an ESP8266 board compatible with `d1_mini` and **four externally powered DS18B20** probes. Connect **all four** VDD to 3.3 V, GND to GND, DATA to GPIO4 / D2; place a **4.7 kΩ pull-up resistor** from DATA to 3.3 V. Avoid 5 V on the ESP8266 GPIO. Check the actual pin markings on your board.
+## Hardware and wiring
 
-Place probes at the supply, extract, exhaust, and outdoor-air ducts as desired. **Temperature 1–4 are deliberately generic**; map sensors to physical ducts before renaming them.
+Use a D1 mini-compatible ESP8266 with 4 MB flash if possible, four externally powered DS18B20 probes, and a **4.7 kΩ pull-up** between 3.3 V and DATA. Connect each sensor **VDD → 3.3 V**, **GND → GND**, **DATA → GPIO4 / D2**. Never drive an ESP8266 GPIO with 5 V.
 
-## Files
+Position the probes in whichever duct locations you require (typically supply, extract, exhaust, and outside air). The four entity names are generic. Probe **indexes 0–3** are selected by sensor ROM address ordering, **not by physical location**. If you replace a probe, your mappings may change. Users who require permanently fixed mapping can build personalized firmware using their own `address: 0x...` values.
 
-| File | Purpose |
-| --- | --- |
-| `mhrv-monitor.yaml` | Main ESPHome firmware configuration |
-| `.temperature_filters.yaml` | Included per-channel moving average, calibration, and hysteresis filter |
-| `secrets.example.yaml` | Template for local private configuration |
-| `.gitignore` | Prevents accidentally committing `secrets.yaml` or compiled images |
-| `.github/workflows/validate.yml` | YAML validation and compile on PRs and main |
-| `.github/workflows/release.yml` | Version-tagged GitHub source releases |
+## Install the compiled factory image
 
-**Important:** `.temperature_filters.yaml` starts with a dot. Show hidden files when copying the project; it must be alongside the main YAML.
+1. Open **[MHRV Monitor firmware installer](https://stepyon.github.io/MHRV-monitor-esphome/)**, after the first release is published and GitHub Pages is enabled. Use a desktop Chrome or Edge browser with Web Serial and connect the ESP8266 via USB.
+2. Select **Install** and flash the factory firmware. Alternatively download `mhrv-monitor-vX.Y.Z-firmware.factory.bin` from [GitHub Releases](https://github.com/Stepyon/MHRV-monitor-esphome/releases) and flash via a compatible serial flashing tool at offset `0x0`.
+3. Configure Wi-Fi via the USB **Improv Serial** setup, or join the device's initially open **MHRV Monitor Setup** Wi-Fi hotspot and visit `http://192.168.4.1` to enter your home Wi-Fi credentials. The open provisioning AP is for first-time setup; avoid doing this on an untrusted network.
+4. Add the new device to **Settings → Devices & services → ESPHome** in Home Assistant. Its name contains a MAC suffix for uniqueness. Complete the **per-device encryption key provisioning** when prompted. Use a current Home Assistant version that supports provisioning.
+5. The device exposes four temperature measurements, seven configuration controls and an **MHRV Monitor Firmware** update entity. Adjust offsets and filtering from Home Assistant.
 
-## Getting started
+The same compiled binary works for every new supported board: Wi-Fi credentials and the API encryption key are provisioned and stored in device flash, **not inside the public image**.
 
-1. Download or clone the repository and install the [ESPHome Device Builder](https://esphome.io/guides/getting_started_hassio/) in Home Assistant, or the [ESPHome CLI](https://esphome.io/guides/installing_esphome.html).
-2. Copy `secrets.example.yaml` to `secrets.yaml`. Fill in the actual Wi-Fi details, a unique fallback AP password, and a **unique 32-byte Base64 API encryption key**, generated with `openssl rand -base64 32` or ESPHome's key generator. Never push `secrets.yaml`.
-3. Check the temperature sensor mapping. The public config selects Dallas probes by hardware `index: 0` to `3`, so it can compile for other owners' hardware. **Indexes are sorted by hardware addresses, not physical duct position**, and may change when probes are added or replaced. After checking the discovered addresses in the logs, use each probe's `address: 0x...` instead of `index:` for reliable permanent mapping. Each sensor must have exactly one identifier.
-4. Validate: `esphome config mhrv-monitor.yaml`.
-5. First-time USB flash: `esphome run mhrv-monitor.yaml` and select the serial port, or install from ESPHome Device Builder. Reset/power-cycle the ESP8266 if the first OTA attempt after flashing fails.
-6. In Home Assistant go to **Settings → Devices & services**, add the discovered ESPHome device, and use the encryption key configured above.
-7. In the device's entities configure Polling Interval, Smoothing Window, Hysteresis, and Temperature 1–4 Calibration. All these controls retain their values across normal restarts.
+## One-click OTA from Home Assistant
 
-The fallback hotspot is only for Wi-Fi recovery and uses the password you supplied. This firmware is designed for a trusted local network.
+After a release is published, the device reads a version manifest from:
 
-## Sensor processing
+`https://stepyon.github.io/MHRV-monitor-esphome/firmware/manifest.json`
 
-Every polling cycle requests updates of all four sensors consecutively. This is a synchronized *software polling loop*, not a guarantee that four independent DS18B20 sensors perform exactly simultaneous conversions. DS18B20 12-bit conversions can require up to approximately 750 ms; the 5-second default is a reasonable starting point.
+The `update.http_request` component checks periodically and exposes an update entity in Home Assistant. If the published version is newer, Home Assistant can present a firmware update with an **Install** action. The ESP8266 downloads the matching `firmware.ota.bin` from GitHub Pages and flashes it, then reboots. It uses the OTA image, **not** the USB factory image.
 
-Every channel gets its own copy of the included lambda filter with separate static history and last-published value. Invalid values are discarded. The filter stores the last 20 raw values, averages the latest N, adds that channel's calibration offset, and rounds to 0.1 °C. A new value is published only when the average crosses the 0.1 °C midpoint plus/minus the configured hysteresis, so minor fluctuations do not flood Home Assistant with repeated readings.
+Release versions are embedded in the firmware's `esphome.project.version`; both the image and the manifest are generated from the same `vX.Y.Z` tag. This is a **manual one-click update** model; updates are not silently installed. Keeping the flash partition and firmware format compatible matters across updates.
 
-Changing a control does not immediately reprocess past sensor data. The change applies on the next measurement, except a polling interval change restarts the loop immediately.
+**Caveats:** ESP8266 HTTP OTA is vulnerable to network man-in-the-middle attacks because `verify_ssl: false` is required. A public MD5 checksum detects accidental corruption but does not authenticate a release. ESPHome also has a reported [ESP8266 HTTP OTA issue where stored Wi-Fi credentials can be lost](https://github.com/esphome/esphome/issues/16211), observed on certain 1 MB configurations. Use a D1 mini with 4 MB flash; **physically test whether Wi-Fi credentials, encryption keys and calibration settings survive an HTTP OTA on your chosen board before distributing it**. No compatibility test on hardware is implied by a successful CI compilation.
 
-### Defaults
+If an update fails, recovery may require USB serial flashing or re-provisioning Wi-Fi. For high-security deployments switch to ESP32 and a signed-OTA design.
 
-| Control | Default | Range |
+### Local native OTA
+
+The `ota: platform: esphome` entry also supports authenticated local updates using each device's provisioned API key. A developer who imports/adopts the YAML can compile and upload personalized firmware via ESPHome Device Builder or CLI. This mechanism is distinct from public HTTP firmware updates.
+
+## Releases and continuous integration
+
+- Pull requests and pushes to `main`: GitHub Actions installs pinned **ESPHome 2026.11.0**, validates the no-secret YAML, compiles, and checks that both factory and OTA images are present.
+- Push a tag like `v0.1.0` **after merging to main**: the release workflow compiles with `-s firmware_version 0.1.0`, runs `scripts/package_release.py`, creates a GitHub Release with both images, source archive and SHA256 checksums, and deploys a versioned OTA image plus latest update manifest to GitHub Pages.
+- GitHub Pages must be enabled under **Settings → Pages → Build and deployment → Source: GitHub Actions** before the firmware feed works. The deployment workflow attempts to enable Pages but repository settings may still require manual intervention.
+- Check the [Actions page](https://github.com/Stepyon/MHRV-monitor-esphome/actions) and published [GitHub Pages firmware manifest](https://stepyon.github.io/MHRV-monitor-esphome/firmware/manifest.json) before advertising a release. A merged PR alone does **not** publish a release or enable OTA notifications.
+
+Release files include:
+- `mhrv-monitor-vX.Y.Z-firmware.factory.bin` — serial first-install image.
+- `mhrv-monitor-vX.Y.Z-firmware.ota.bin` — HTTP OTA update image.
+- `mhrv-monitor-vX.Y.Z-source.tar.gz` — source files.
+- `SHA256SUMS.txt` — independently checkable hashes.
+- GitHub Pages `firmware/manifest.json` and `firmware/manifest.web.json` — latest-update and browser-installer manifests.
+
+**Release maintenance:** Use an increasing version number, do not retag published versions, verify the release on the exact target ESP8266 board, and retain offline copies of older images for recovery. The public release feed follows the latest deployed tag; prerelease tags would also be published to the stable feed, so only tag versions you intend to offer everyone.
+
+## Filters, controls, and hardware identity
+
+Each DS18B20 sensor receives an independent `.temperature_filters.yaml` lambda instance and history. The filter averages the most recent raw readings over the configured window, applies the sensor-specific calibration, rounds to 0.1 °C and publishes only when the midpoint plus hysteresis is crossed. Filtering does not retroactively reprocess previous samples after a control change.
+
+| Home Assistant control | Default | Range |
 | --- | --- | --- |
 | Temperature Polling Interval | 5 s | 1–300 s |
 | Temperature Smoothing Window | 4 samples | 1–20 |
 | Temperature Hysteresis | 0.02 °C | 0–0.05 °C |
-| Temperature 1–4 Calibration | 0 °C each | −5 to +5 °C, in 0.05 °C steps |
+| Temperature 1–4 Calibration | 0 °C each | −5 to +5 °C |
 
-The original personal setup had calibration offsets of 0, +0.05, −0.10, and −0.20 °C. Restore these in your own device controls if appropriate; public defaults remain zero.
+The four Dallas sensor addresses depend on individual physical probes and are intentionally **not** committed. The personal original installation had offsets 0, +0.05, −0.10, and −0.20 °C, which can be entered in HA if suitable for your probes.
 
-## Updating OTA
+## Source and customization
 
-### Recommended: compile your personalized firmware locally
-
-The device supports native ESPHome OTA. In ESPHome Device Builder choose **Install → Wirelessly**; from a local checkout run:
+The canonical, credential-free source is `mhrv-monitor.yaml`. The hidden `.temperature_filters.yaml` file must remain beside it. You can run:
 
 ```sh
-esphome run mhrv-monitor.yaml --device mhrv-monitor.local
+pip install esphome==2026.11.0
+esphome config mhrv-monitor.yaml
+esphome compile mhrv-monitor.yaml
 ```
 
-ESPHome compiles firmware containing **your own** Wi-Fi settings, API/OTA encryption key, and hardware mapping, and uploads it to the device via the encrypted OTA protocol. Use the actual hostname/IP if different. Ordinary Home Assistant ESPHome integration does not automatically install GitHub release binaries; it is the ESPHome Device Builder or CLI that performs this source-based update.
+For a personalized fork, you may replace indexed probes with permanent addresses, but note that installing such customized firmware breaks alignment with the shared release channel. Customize with care and do not overwrite personal customizations with the public binary.
 
-### Migrating from the original firmware
-
-The original uploaded firmware already had **unencrypted ESPHome OTA**, but an encrypted native API. It is essential to **keep the same API encryption key** on the first update to preserve connectivity and migrate safely. This repository requires encrypted OTA, supported in ESPHome 2026.9 and later.
-
-**Do not switch directly from an old plaintext-only OTA installation to strict encrypted OTA without following the transition procedure.** Follow the [ESPHome OTA encryption migration guide](https://esphome.io/components/ota/esphome/#encryption), which describes a staged two-upload migration or a one-time `allow_plaintext_upload` exception. Remove any temporary plaintext exception after upgrading.
-
-For the existing device, replace `index: 0..3` with the original four `address:` assignments, in the same sensor order. Your existing original mapping is preserved only if you do this. Keep the existing API key privately in `secrets.yaml`. The original firmware also contained a hardcoded fallback AP password: generate a new unique one, and never put real device secrets in a public issue or commit.
-
-### GitHub Actions and versioned releases
-
-Pull requests and pushes to main run the pinned ESPHome 2026.11.0 validation/compile workflow. CI uses **dummy-only credentials** and deliberately does **not** distribute or upload its test firmware.
-
-A Git tag named `v*` invokes the source-release workflow, publishing `mhrv-monitor-source.tar.gz` with the firmware, filter, example secrets and README. Download that source release and keep your **private** `secrets.yaml` and physical probe address mapping, then use the normal ESPHome OTA command.
-
-**No public universal flashable firmware is provided:** ESPHome embeds credentials and encryption keys in its compiled images. Publishing a binary built for a real user's Wi-Fi or API key would disclose those credentials. A universal CI test image with dummy secrets is not suitable for deployment. This project currently supports secure **manual OTA**, not automatic upstream update notifications or a one-click public factory flasher.
-
-## Troubleshooting
-
-- **Missing filter include:** make sure the dot-prefixed `.temperature_filters.yaml` is in the YAML directory.
-- **Missing/mislabeled sensors:** verify 3.3 V, common ground, DATA pull-up, wiring and detected ROM addresses in logs. Indexes depend on ROM addresses, not cable position.
-- **Home Assistant cannot connect:** verify network access and that Home Assistant has the correct API encryption key.
-- **OTA rejects the firmware:** follow the official migration steps for enabling encrypted OTA on an existing device; serial flashing is a fallback.
-- **Wi-Fi changed:** use the configured fallback AP/captive portal or recover by flashing over USB.
-- **No measurement yet:** sensor startup/conversion takes time; wait at least one polling cycle.
-
-## Security
-
-Use a **unique API key and fallback AP password per device**. `secrets.yaml` is ignored by Git, as are build outputs. Do not attach deployed-device binaries to public issues or releases. If old credentials were ever shared, rotate them after a successful migration.
+The optional `secrets.example.yaml` illustrates how to hold private credentials for a custom fork; the **standard factory source doesn't use secrets.yaml**. Keep any personal secrets out of Git and GitHub Actions.
 
 ## License
 
-No license has yet been selected. Add a LICENSE file to clarify third-party usage and redistribution before publishing it as an open-source project.
+No license has been selected yet. Add a LICENSE file before encouraging third-party redistribution or contributions.
