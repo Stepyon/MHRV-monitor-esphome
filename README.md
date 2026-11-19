@@ -43,6 +43,28 @@ Connect **one 4.7 kΩ resistor between 3V3 and GPIO4/DATA**, shared by all four 
 
 > The TTGO T-Base board's I²C-labelled connectors can differ from conventional ESP8266 SDA/SCL naming; use the actual **GPIO4** pad (marked `4`) for this project rather than guessing based on an I²C label. <a href="https://www.tinytronics.nl/en/lilygo-ttgo-t-base-esp8266">Board reference</a>
 
+### Install the temperature probes in the MVHR ducting
+
+The four DS18B20 probes should measure air temperature **inside the four ventilation ducts**, close to the MVHR/MHRV unit. The installation shown below uses a **custom 3D-printed sensor adapter** to hold each waterproof probe in the duct wall.
+
+![Installed DS18B20 sensor adapter in an insulated MVHR duct just above the unit](docs/images/mhrv-duct-probe-installation.webp)
+
+**3D-printable adapter:** [Download the STL model](docs/models/MHRV_sensor_adapter.stl) — designed for this installation. **Print four adapters**, one per temperature probe. Check that the model fits your own probe and duct before making holes.
+
+**Material:** The example adapters were printed in **ASA**. **ABS** and **PETG** are also possible, subject to the temperatures at your installation. **Avoid PLA**, which can soften or deform in warmer duct environments. The adapter has a thin section and can break if forced; handle it carefully.
+
+#### Fitting the adapters
+
+1. **Choose the installation points.** Identify the outdoor, supply, extract and exhaust ducts. Select a suitable place on **each duct a few centimetres above the ventilation unit casing**, as in the photo. Check that the sensor will be in the moving airstream and that the location is clear of internal parts, wiring and any obstruction. Avoid drilling into the MVHR unit itself.
+2. **Switch the ventilation unit off and isolate its electrical supply** before drilling or reaching into the ducting. Peel back just enough of the foil-faced insulation to access the actual duct wall. Take care not to damage wiring or other components, and keep drilling debris out of the system.
+3. **Make a small pilot/fitting hole.** The adapter's insertion section is approximately **9 mm** across. In this installation, an **8 mm drill bit** was used first, then the opening was gradually enlarged with a **round file** until the adapter could be pushed into place with a snug fit. A **9 mm** drill may also work depending on the printed tolerances.
+4. **Test the fit before enlarging further.** A **10 mm drill bit** is an option, but the opening can become too wide and leave the adapter loose. If unsure, drill a test hole in a piece of scrap material first. You can always enlarge a small hole; you cannot easily make an oversized hole smaller.
+5. **Fit the sensor into its adapter.** Gently push the probe through until the **entire metal sensing sleeve protrudes beyond the inner end** of the adapter into the airstream. At the outer end, you should see **only the cable**, not any of the metal sleeve. Do not press so hard that the plastic adapter cracks, and do not sharply bend the sensor cable at its exit.
+6. **Secure and seal the adapter.** Apply a small bead of suitable adhesive/sealant around the adapter's base/flange, then press it into the duct opening. Keep adhesive off the exposed metal sensing sleeve. Ensure the joint is **airtight** and the adapter cannot fall into the duct. Choose a sealant compatible with your duct material, insulation, printed plastic and expected temperature.
+7. **Restore the insulation and check operation.** Carefully reseal the foil/vapour barrier around the cable and adapter so the duct stays insulated and airtight. Repeat for all **four** ducts, reconnect the probes to the common GPIO4 bus, restore power, and confirm all four temperature readings are available. Finally assign each physical probe to **Outdoor Air**, **Supply Air**, **Extract Air** and **Exhaust Air** in Home Assistant.
+
+**Installation precautions:** Ductwork varies by manufacturer. Before drilling, check the MVHR manufacturer's servicing and warranty requirements, verify the exact duct location, and make sure the sensor/adapter will not obstruct airflow or interfere with dampers, fans or cleaning access. Remove all swarf and debris. This is a documented example of a user installation, **not a manufacturer-approved procedure**.
+
 ### Enter USB flashing mode (TTGO T-Base)
 
 On this TTGO T-Base, you can manually enter the ESP8266 serial bootloader with a temporary connection between **GPIO0 (pad `0`)** and **GND** **while power is first applied**. This is **not the same pin as GPIO4**, which is used for the temperature probes.
