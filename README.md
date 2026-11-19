@@ -7,6 +7,7 @@ Open-source, credential-free ESP8266 firmware for a four-probe mechanical heat r
 - Four 12-bit DS18B20 probes on a shared GPIO4 / D2 1-Wire bus.
 - **Four named duct temperatures:** Outdoor Air, Supply Air, Extract Air, and Exhaust Air.
 - **Four Home Assistant dropdowns** let you assign any of the four physical probes to each duct without editing YAML or reflashing.
+- **Read-only device diagnostics:** real flash chip size, full ESP8266 device information, reset reason, free heap / largest contiguous block / fragmentation, main loop time, Wi-Fi RSSI, uptime, IP address and MAC address.
 - **Supply Efficiency, Exhaust Efficiency, and Operating Mode** are calculated directly on the ESP8266 using those assigned duct sensors (no Home Assistant template entities needed).
 - Configurable polling interval (1–300 seconds; default 5 seconds).
 - Four independent per-sensor calibration offsets (±5 °C in 0.05 °C steps).
@@ -147,6 +148,53 @@ After deploying the new firmware and verifying all four mapping dropdowns, you c
 | Temperature 1–4 Calibration | 0 °C each | −5 to +5 °C |
 
 The four Dallas sensor addresses depend on individual physical probes and are intentionally **not** committed. The personal original installation had offsets 0, +0.05, −0.10, and −0.20 °C, which can be entered in HA if suitable for your probes.
+
+## ESP8266 OTA diagnostics and troubleshooting
+
+The diagnostic entities below are exposed through the **ESPHome device page** in Home Assistant. Most have `entity_category: diagnostic` and may appear under Diagnostics rather than the main sensor group.
+
+| Entity | Purpose |
+| --- | --- |
+| **Flash Chip Size** | Actual SPI flash capacity reported by `ESP.getFlashChipRealSize()`, in MB (for TTGO T-Base, expect around 4 MB) |
+| **Device Information** | ESPHome version, flash chip size/speed/mode and ESP8266 chip/flash information |
+| **Reset Reason** | ESP8266's last reset reason, useful to distinguish OTA software restarts from crashes |
+| **Free Heap / Largest Free Heap Block / Heap Fragmentation** | RAM and fragmentation for identifying OTA failures or memory pressure |
+| **Main Loop Time** | Main event-loop latency |
+| **WiFi Signal** | Wi-Fi signal strength in dBm |
+| **Uptime** | Seconds since last boot, useful for spotting spontaneous restarts |
+| **IP Address / MAC Address** | Network identification while diagnosing reconnect or mDNS problems |
+
+All added diagnostics are **read-only**. No new `restore_value` controls are introduced, to avoid shifting the order of ESP8266 persisted preferences; the four existing probe mapping selects and all seven existing numeric settings remain in their original order.
+
+### OTA Wi-Fi persistence test
+
+On a device already running `v0.2.0`, **record its Wi-Fi and persistent configuration before testing**. Change one or more nondefault values, then power-cycle and confirm they persist. Next, install the newly tagged diagnostic release using the Home Assistant update entity. Check:
+
+1. Whether Home Assistant automatically reconnects (without re-entering Wi-Fi credentials) and retained the per-device API key.
+2. Whether the probe dropdown mappings and numeric calibration/smoothing/polling values retain their previous values.
+3. The **Flash Chip Size**, **Reset Reason** and **Device Information** diagnostics after reconnecting.
+4. Whether a second OTA within the same preference layout preserves all settings.
+
+If Wi-Fi is lost again, rejoin the fallback **MHRV Monitor Setup** AP, visit `http://192.168.4.1` and provision your home Wi-Fi again. The installed firmware should not require USB flashing. If Home Assistant no longer connects, check whether the API key also reset.
+
+**Important:** The diagnosed v0.1.0 → v0.2.0 Wi-Fi loss may have been caused by an ESPHome 2026 preference-slot ordering problem (see [ESPHome issue #22693](https://github.com/esphome/esphome/issues/22693)) rather than insufficient 4 MB flash capacity. This release only adds diagnostics and **does not claim to fix preference corruption**; see [our tracking issue #3](https://github.com/Stepyon/MHRV-monitor-esphome/issues/3).
+
+## Entity naming in Home Assistant
+
+The firmware keeps `esphome.name_add_mac_suffix: true` so that every ESP8266 flashed from the **same public factory image** has a unique hostname for mDNS and Home Assistant discovery. On some Home Assistant versions, that suffix is incorporated into the **generated entity IDs**.
+
+For example, an existing entity may be named `sensor.attic_mhrv_monitor_4a3f89_exhaust_air`. You can rename it to `sensor.attic_mhrv_monitor_exhaust_air` **in Home Assistant**, without editing the firmware:
+
+1. Open **Settings → Devices & services → Entities**, find the Exhaust Air entity and open its settings (gear icon).
+2. Edit **Entity ID** to `sensor.attic_mhrv_monitor_exhaust_air` and save.
+3. Repeat for other entity IDs that you want to simplify, including the named temperature and efficiency sensors.
+4. Check dashboards, automations and scripts referring to the old IDs. Home Assistant maintains the entity's integration unique ID and device association; renaming its entity ID does not disable automatic updates.
+
+You can also give the device a clean display name such as **Attic MHRV Monitor** under its Home Assistant device settings. **Changing the device display name does not automatically rename existing entity IDs.** Don't set `name_add_mac_suffix: false` on a common factory image: devices would share the same network hostname, causing discovery or connection conflicts. These simple, location-specific entity IDs cannot be guaranteed by a universal firmware image alone; Home Assistant owns the final entity registry IDs.
+
+## Release testing and versioning
+
+Do not retag an already published release. Once the changes are merged and validation passes, publish a **new `v0.3.0` tag** to trigger the existing CI release workflow. Check factory + OTA builds and GitHub Pages deployment. This testing version only adds diagnostics; it does not deliberately change the saved-preferences layout.
 
 ## Source and customization
 
