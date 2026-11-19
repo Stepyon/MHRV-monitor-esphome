@@ -1,13 +1,17 @@
-# MHRV monitor: ESP8266 + four DS18B20 probes
-# Copy secrets.example.yaml to secrets.yaml and enter your own values.
-# The default index mapping is portable but may change when probes change.
+# MHRV monitor — shared, credential-free factory and OTA firmware
+# ESPHome 2026.11.0 / ESP8266 D1 mini with 4x DS18B20
 substitutions:
   device_name: mhrv-monitor
   friendly_name: MHRV Monitor
+  firmware_version: "0.1.0"
 
 esphome:
   name: ${device_name}
+  name_add_mac_suffix: true
   friendly_name: ${friendly_name}
+  project:
+    name: stepyon.mhrv_monitor
+    version: "${firmware_version}"
   on_boot:
     priority: -100
     then:
@@ -19,24 +23,44 @@ esp8266:
 
 logger:
 
+# This API key is provisioned by Home Assistant after the initial setup.
+# No global key is embedded in the public firmware.
 api:
   encryption:
-    key: !secret api_encryption_key
 
+# Limit the unprovisioned device's enrollment window.
+provisioning:
+  timeout: 5min
+
+# Local encrypted OTA is available to an owner with their per-device API key.
+# HTTP OTA supports upstream versioned releases; see the README security warning.
 ota:
   - platform: esphome
-    # ESPHome >= 2026.9: authenticated and encrypted using the native API key.
-    # See README for migration from existing plaintext OTA.
     encryption:
+  - platform: http_request
 
+# ESP8266 cannot verify remote TLS server certificates with ESPHome.
+# Remote one-click firmware updates have a MITM risk; see README.
+http_request:
+  verify_ssl: false
+  timeout: 20s
+  tls_buffer_size_rx: 16384
+
+update:
+  - platform: http_request
+    name: "MHRV Monitor Firmware"
+    source: https://stepyon.github.io/MHRV-monitor-esphome/firmware/manifest.json
+    update_interval: 6h
+    entity_category: diagnostic
+
+# No built-in Wi-Fi credentials: use captive portal / Improv Serial on first boot.
 wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
   ap:
-    ssid: "${friendly_name} Setup"
-    password: !secret fallback_ap_password
+    ssid: "MHRV Monitor Setup"
 
 captive_portal:
+
+improv_serial:
 
 one_wire:
   - platform: gpio
