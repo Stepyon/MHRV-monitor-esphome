@@ -1,6 +1,6 @@
 # MHRV Monitor (ESPHome)
 
-Open-source, ESP8266 firmware for a four-probe mechanical heat recovery ventilation (MHRV / MVHR) temperature monitor. Firmware is designed for a Wemos D1 mini-compatible board, four DS18B20 digital sensors, and Home Assistant.
+Open-source ESPHome firmware for monitoring mechanical heat recovery ventilation (MHRV / MVHR) systems using an ESP8266 board (LILYGO TTGO T-Base or Wemos D1 mini-compatible) and four DS18B20 temperature probes. It measures **outdoor, supply, extract and exhaust air temperatures**, calculates **supply and exhaust heat-recovery efficiency**, and estimates the ventilation unit's operating mode (**heating, cooling, bypass or neutral**). Home Assistant provides configurable probe mapping, calibration, live monitoring and one-click OTA firmware updates.
 
 ## Features
 
