@@ -6,9 +6,9 @@ Open-source ESPHome firmware for monitoring mechanical heat recovery ventilation
 
 - Four 12-bit DS18B20 probes on a shared GPIO4 / D2 1-Wire bus.
 - **Four named duct temperatures:** Outdoor Air, Supply Air, Extract Air, and Exhaust Air.
+- **Supply Efficiency, Exhaust Efficiency, and Operating Mode** are calculated directly on the ESP8266 using those assigned duct sensors (no Home Assistant template entities needed).
 - **Four Home Assistant dropdowns** let you assign any of the four physical probes to each duct without editing YAML or reflashing.
 - **Read-only device diagnostics:** real flash chip size, full ESP8266 device information, reset reason, free heap / largest contiguous block / fragmentation, main loop time, Wi-Fi RSSI, uptime, IP address and MAC address.
-- **Supply Efficiency, Exhaust Efficiency, and Operating Mode** are calculated directly on the ESP8266 using those assigned duct sensors (no Home Assistant template entities needed).
 - Configurable polling interval (1–300 seconds; default 5 seconds).
 - Four independent per-sensor calibration offsets (±5 °C in 0.05 °C steps).
 - Sliding-window moving average (1–20 samples; default 4).
