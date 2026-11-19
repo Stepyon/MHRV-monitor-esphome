@@ -23,7 +23,41 @@ Open-source, credential-free ESP8266 firmware for a four-probe mechanical heat r
 
 ## Hardware and wiring
 
-Use a D1 mini-compatible ESP8266 with 4 MB flash if possible, four externally powered DS18B20 probes, and a **4.7 kΩ pull-up** between 3.3 V and DATA. Connect each sensor **VDD → 3.3 V**, **GND → GND**, **DATA → GPIO4 / D2**. Never drive an ESP8266 GPIO with 5 V.
+The illustrated board below is the **LILYGO TTGO T-Base (ESP8266)**, the hardware used for this project. It has **4 MB flash**, a Micro-USB port, and a D1 mini-compatible ESP8266 pin layout. Other D1 mini-compatible ESP8266 boards can use the same firmware if wired to the correct GPIO and powered appropriately.
+
+![Illustration of the blue LILYGO TTGO T-Base ESP8266 board](docs/images/ttgo-t-base-board.svg)
+
+*Original board illustration for identification. It is not a literal hole-by-hole pinout; consult the labels printed on your own PCB.*
+
+### Connect four DS18B20 temperature probes
+
+![Connection diagram showing four DS18B20 probes wired in parallel to TTGO T-Base GPIO4 with a single 4.7 kΩ pull-up resistor](docs/images/ttgo-t-base-ds18b20-wiring.svg)
+
+All **four probes are wired in parallel**, using the same three board pins:
+
+| DS18B20 wire / terminal | TTGO T-Base pin | Purpose |
+| --- | --- | --- |
+| **VDD** (usually red) | **3V3** | 3.3 V supply |
+| **DATA / DQ** (often yellow or white) | **GPIO4** (pad marked **4**, equivalent to D2 on a Wemos D1 mini) | Shared 1-Wire data bus |
+| **GND** (usually black) | **GND** | Common ground |
+
+Connect **one 4.7 kΩ resistor between 3V3 and GPIO4/DATA**, shared by all four sensors. Do not fit a separate pull-up resistor for every probe. The firmware's `one_wire` bus is configured as `pin: GPIO4` in `mhrv-monitor.yaml`.
+
+**Important:** Probe wire colours are not guaranteed: verify the pin assignment in the sensor seller's documentation before connecting power. Use **3.3 V**, not 5 V, for the sensors in this wiring arrangement, and never connect 5 V directly to an ESP8266 GPIO. Only immerse properly sealed waterproof probe tips in water; keep PCB, connectors, and joints dry. Insulate exposed wiring and check for shorts before powering the board.
+
+> The TTGO T-Base board's I²C-labelled connectors can differ from conventional ESP8266 SDA/SCL naming; use the actual **GPIO4** pad (marked `4`) for this project rather than guessing based on an I²C label. <a href="https://www.tinytronics.nl/en/lilygo-ttgo-t-base-esp8266">Board reference</a>
+
+### Enter USB flashing mode (TTGO T-Base)
+
+On this TTGO T-Base, you can manually enter the ESP8266 serial bootloader with a temporary connection between **GPIO0 (pad `0`)** and **GND** **while power is first applied**. This is **not the same pin as GPIO4**, which is used for the temperature probes.
+
+1. **Unplug USB / disconnect power.** Do not install or move jumpers with the board powered.
+2. Temporarily connect **GPIO0 (`0`) → GND** using a jumper wire.
+3. **While the jumper is connected**, plug the Micro-USB cable into the computer. The chip should enter serial download / flashing mode.
+4. Open the [browser firmware installer](https://stepyon.github.io/MHRV-monitor-esphome/) in Chrome or Edge, choose the device's serial port, and flash the **factory firmware**. Some USB adapters or flashing tools can enter this mode automatically, so the jumper may not always be necessary.
+5. When flashing is finished, **unplug USB again**, remove the GPIO0-to-GND jumper, then reconnect USB. The device should now start normally and expose its setup hotspot for initial provisioning.
+
+**Never leave GPIO0 permanently shorted to GND**, or the ESP8266 will continue to enter its bootloader instead of running the firmware after power-up. Avoid accidentally shorting GPIO4 or 3V3 to GND. This manual procedure follows [Espressif's ESP8266 boot-mode documentation](https://docs.espressif.com/projects/esptool/en/latest/esp8266/advanced-topics/boot-mode-selection.html). **Subsequent Home Assistant OTA updates do not need a jumper or a USB cable.**
 
 Place your DS18B20 probes in the four ducts. The physical probes appear as the existing **Temperature 1–4** measurements (also referred to as **Probe 1–4** in the mapping dropdowns), and four additional sensors expose stable duct-oriented names:
 
@@ -39,7 +73,7 @@ Place your DS18B20 probes in the four ducts. The physical probes appear as the e
 ## Install the compiled factory image
 
 1. Open **[MHRV Monitor firmware installer](https://stepyon.github.io/MHRV-monitor-esphome/)**, after the first release is published and GitHub Pages is enabled. Use a desktop Chrome or Edge browser with Web Serial and connect the ESP8266 via USB.
-2. Select **Install** and flash the factory firmware. Alternatively download `mhrv-monitor-vX.Y.Z-firmware.factory.bin` from [GitHub Releases](https://github.com/Stepyon/MHRV-monitor-esphome/releases) and flash via a compatible serial flashing tool at offset `0x0`.
+2. If your TTGO T-Base doesn't enter flashing mode automatically, first follow [Enter USB flashing mode](#enter-usb-flashing-mode-ttgo-t-base): unplug USB, temporarily connect GPIO0 to GND, reconnect USB, then flash. After flashing, unplug USB and **remove the jumper** before powering the board normally. Select **Install** to flash the factory firmware. Alternatively download `mhrv-monitor-vX.Y.Z-firmware.factory.bin` from [GitHub Releases](https://github.com/Stepyon/MHRV-monitor-esphome/releases) and flash via a compatible serial flashing tool at offset `0x0`.
 3. Configure Wi-Fi via the USB **Improv Serial** setup, or join the device's initially open **MHRV Monitor Setup** Wi-Fi hotspot and visit `http://192.168.4.1` to enter your home Wi-Fi credentials. The open provisioning AP is for first-time setup; avoid doing this on an untrusted network.
 4. Add the new device to **Settings → Devices & services → ESPHome** in Home Assistant. Its name contains a MAC suffix for uniqueness. Complete the **per-device encryption key provisioning** when prompted. Use a current Home Assistant version that supports provisioning.
 5. The device exposes **four physical temperature channels (Temperature 1–4)**, **four named duct temperatures**, **two efficiency measurements**, **one operating-mode text sensor**, four probe-mapping dropdowns, seven numeric configuration controls, and an **MHRV Monitor Firmware** update entity. Adjust mapping, offsets and filtering in Home Assistant.
@@ -60,6 +94,35 @@ On the ESPHome device page, find the four dropdowns:
 Mappings are saved in ESP8266 flash through `restore_value: true`. The physical sensor calibration and smoothing still apply **before** any duct mapping. For example, changing the Supply Air dropdown to Probe 4 displays **Temperature 4**, including its individual calibration offset and configured smoothing.
 
 Until a role has been assigned, its named temperature is unknown. For simplicity, the dropdowns don't prevent choosing the same probe for multiple ducts. For correct ventilation monitoring, **assign each probe to exactly one duct**. If hardware sensors are replaced, check the mapping again because index numbering can change.
+
+### Calibrate the temperature probes (important for efficiency calculations)
+
+**Calibrate all four probes against each other before installing them in different ducts.** The supply and exhaust efficiencies are calculated from **differences between measured temperatures**. Small disagreements between probes can therefore produce misleading efficiency values, especially when the outdoor and extract temperatures are close.
+
+A simple **common water-bath calibration** works well for matching the probes:
+
+1. Connect all four waterproof DS18B20 probes to the board and confirm **Temperature 1–4** update in Home Assistant. Leave the electronics and any unsealed connections **outside** the water.
+2. Fill a glass or container with room-temperature water. Place all four **sealed metal probe tips in the same water**, at approximately the same depth, without touching the sides or bottom of the glass. Stir gently to make the temperature uniform.
+3. **Wait roughly 30 minutes**, or until all four readings stop drifting. Avoid touching the probes or warming the glass with your hands during the measurement.
+4. Note the four **Temperature 1–4** values in Home Assistant. Pick a common target temperature. For *relative* matching, using the median or average of stable probe readings is fine; for absolute accuracy use a reliable calibrated reference thermometer.
+5. For each probe, adjust its matching **Temperature N Calibration** number in Home Assistant. Use:
+   `new offset = current offset + (target temperature − current displayed temperature)`
+   The controls support **0.05 °C** steps.
+6. Allow the readings to stabilise again after each adjustment. Repeat if necessary until all four agree as closely as practical (typically within **0.1 °C**, the firmware's published resolution).
+7. Remove the probes, dry them, install them in the four ducts, and use the **Outdoor Air / Supply Air / Extract Air / Exhaust Air Probe** dropdowns to assign their physical locations.
+
+**Worked example:** Suppose the four stable displayed temperatures in the same water bath are 21.2 °C, 21.5 °C, 21.1 °C and 21.4 °C. To match **21.3 °C** with initial zero offsets, enter:
+
+| Physical probe | Reading before | Calibration offset | Expected reading |
+| --- | ---: | ---: | ---: |
+| Temperature 1 | 21.2 °C | +0.10 °C | 21.3 °C |
+| Temperature 2 | 21.5 °C | −0.20 °C | 21.3 °C |
+| Temperature 3 | 21.1 °C | +0.20 °C | 21.3 °C |
+| Temperature 4 | 21.4 °C | −0.10 °C | 21.3 °C |
+
+The example offsets are **not universal**: use your own measured readings. The firmware stores each offset in flash and applies it **before** assigning the probe to an airflow role or computing efficiency. You normally only need to repeat this if you replace a probe or see its readings drift.
+
+**What this method can and cannot do:** Matching probes in one water bath removes much of their relative offset error at that temperature, which is especially useful for the efficiency calculations. It does **not** certify absolute accuracy over the entire temperature range or correct differences in sensor response time. A two-temperature comparison against a calibrated reference is preferable if you need precise absolute measurements.
 
 The same compiled binary works for every new supported board: Wi-Fi credentials and the API encryption key are provisioned and stored in device flash, **not inside the public image**. ESPHome limits the initial provisioning window to five minutes; power-cycle the device if the setup window expires.
 
