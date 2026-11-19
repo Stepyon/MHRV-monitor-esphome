@@ -7,6 +7,7 @@ Open-source, credential-free ESP8266 firmware for a four-probe mechanical heat r
 - Four 12-bit DS18B20 probes on a shared GPIO4 / D2 1-Wire bus.
 - **Four named duct temperatures:** Outdoor Air, Supply Air, Extract Air, and Exhaust Air.
 - **Four Home Assistant dropdowns** let you assign any of the four physical probes to each duct without editing YAML or reflashing.
+- **Supply Efficiency, Exhaust Efficiency, and Operating Mode** are calculated directly on the ESP8266 using those assigned duct sensors (no Home Assistant template entities needed).
 - Configurable polling interval (1–300 seconds; default 5 seconds).
 - Four independent per-sensor calibration offsets (±5 °C in 0.05 °C steps).
 - Sliding-window moving average (1–20 samples; default 4).
@@ -40,7 +41,7 @@ Place your DS18B20 probes in the four ducts. The physical probes appear as the e
 2. Select **Install** and flash the factory firmware. Alternatively download `mhrv-monitor-vX.Y.Z-firmware.factory.bin` from [GitHub Releases](https://github.com/Stepyon/MHRV-monitor-esphome/releases) and flash via a compatible serial flashing tool at offset `0x0`.
 3. Configure Wi-Fi via the USB **Improv Serial** setup, or join the device's initially open **MHRV Monitor Setup** Wi-Fi hotspot and visit `http://192.168.4.1` to enter your home Wi-Fi credentials. The open provisioning AP is for first-time setup; avoid doing this on an untrusted network.
 4. Add the new device to **Settings → Devices & services → ESPHome** in Home Assistant. Its name contains a MAC suffix for uniqueness. Complete the **per-device encryption key provisioning** when prompted. Use a current Home Assistant version that supports provisioning.
-5. The device exposes **four physical temperature channels (Temperature 1–4)**, **four named duct temperatures**, four probe-mapping dropdowns, seven numeric configuration controls, and an **MHRV Monitor Firmware** update entity. Adjust mapping, offsets and filtering in Home Assistant.
+5. The device exposes **four physical temperature channels (Temperature 1–4)**, **four named duct temperatures**, **two efficiency measurements**, **one operating-mode text sensor**, four probe-mapping dropdowns, seven numeric configuration controls, and an **MHRV Monitor Firmware** update entity. Adjust mapping, offsets and filtering in Home Assistant.
 
 ### Assign the probes in Home Assistant
 
@@ -103,7 +104,40 @@ The source version defaults to `0.1.0` for local development; the tagged release
 
 Each physical DS18B20 sensor receives an independent `.temperature_filters.yaml` lambda instance and history. The filter averages the most recent raw readings over the configured window, applies the sensor-specific calibration, rounds to 0.1 °C and publishes only when the midpoint plus hysteresis is crossed. Filtering does not retroactively reprocess previous samples after a control change.
 
-The four named temperature entities are virtual template sensors driven by **Temperature 1–4** readings. When a physical probe publishes a new filtered temperature, the four mapped entities check their selected physical probes; a delta filter suppresses unchanged duplicate readings. Changing one of the four mapping dropdowns immediately refreshes the named temperatures, without a reboot or firmware rebuild. Mappings don't change the measured data on the physical probes.
+The four named temperature entities are virtual template sensors driven by **Temperature 1–4** readings. When a physical probe publishes a new filtered temperature, all four mapped entities update, followed by the efficiencies and operating mode. Changing a dropdown immediately recomputes every named and derived value, without a reboot or firmware rebuild. An unassigned or missing probe yields an unknown temperature, rather than leaving a stale reading. Mappings don't change the measured data on the physical probes.
+
+### Thermal recovery calculations (device-side)
+
+All three values use the **named, mapped air-temperature entities**, not hardcoded physical sensor indexes. Their values therefore follow the user-configured mapping automatically.
+
+- `Outdoor Air` (**O**): outside fresh air entering the MVHR unit.
+- `Supply Air` (**S**): conditioned air supplied to rooms.
+- `Extract Air` (**I**): indoor air returning to the exchanger.
+- `Exhaust Air` (**E**): air discharged outdoors after the exchanger.
+
+**Supply Efficiency (%)** is `clamp(100 × (S − O) / (I − O), 0, 100)`.
+
+**Exhaust Efficiency (%)** is `clamp(100 × (I − E) / (I − O), 0, 100)`.
+
+Both efficiencies are rounded to one decimal place. If the absolute indoor/outdoor temperature difference `|I − O|` is **1 °C or less**, they report `0%`, matching the previous Home Assistant templates. If any required mapped temperature is unavailable, the efficiency measurement is unavailable rather than reporting a misleading zero.
+
+**Operating Mode** is computed using all four temperatures:
+
+| Condition (evaluated in order) | Reported mode |
+| --- | --- |
+| A required duct temperature is missing or unassigned | Unknown |
+| `|I − O| < 3°C` | Neutral |
+| `100 × |S − O| / |I − O| < 30` **and** `100 × |I − E| / |I − O| < 30` | Bypass |
+| `O < I` | Heating |
+| Otherwise | Cooling |
+
+The operating-mode calculation corrects a typo in the previous Home Assistant configuration: it uses **Exhaust Air**, rather than mistakenly reusing **Extract Air** in the exhaust-side transfer calculation.
+
+These are temperature-based *estimates* of heat-recovery effectiveness and operating behaviour, not direct measurements of fan state, damper position or official MVHR efficiency. Sensor placement, calibration, and airflow balance can affect the result.
+
+### Migrating from the Home Assistant templates
+
+After deploying the new firmware and verifying all four mapping dropdowns, you can remove or disable the three old Home Assistant template definitions. Their replacement ESPHome entities are called **Supply Efficiency**, **Exhaust Efficiency**, and **Operating Mode** on the MHRV Monitor device. Home Assistant entity IDs may differ from your old `sensor.mhrv_...` names; check automations and dashboards before deleting the old entities.
 
 | Home Assistant control | Default | Range |
 | --- | --- | --- |
