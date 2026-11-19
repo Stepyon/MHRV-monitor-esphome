@@ -125,7 +125,7 @@ Place your DS18B20 probes in the four ducts. The physical probes appear as the e
 
 ## Install the compiled factory image
 
-1. Open **[MHRV Monitor firmware installer](https://stepyon.github.io/MHRV-monitor-esphome/)**, after the first release is published and GitHub Pages is enabled. Use a desktop Chrome or Edge browser with Web Serial and connect the ESP8266 via USB.
+1. Open **[MHRV Monitor firmware installer](https://stepyon.github.io/MHRV-monitor-esphome/)**. Use a desktop Chrome or Edge browser with Web Serial and connect the ESP8266 via USB.
 2. If your TTGO T-Base doesn't enter flashing mode automatically, first follow [Enter USB flashing mode](#enter-usb-flashing-mode-ttgo-t-base): unplug USB, temporarily connect GPIO0 to GND, reconnect USB, then flash. After flashing, unplug USB and **remove the jumper** before powering the board normally. Select **Install** to flash the factory firmware. Alternatively download `mhrv-monitor-vX.Y.Z-firmware.factory.bin` from [GitHub Releases](https://github.com/Stepyon/MHRV-monitor-esphome/releases) and flash via a compatible serial flashing tool at offset `0x0`.
 3. Configure Wi-Fi via the USB **Improv Serial** setup, or join the device's initially open **MHRV Monitor Setup** Wi-Fi hotspot and visit `http://192.168.4.1` to enter your home Wi-Fi credentials. The open provisioning AP is for first-time setup; avoid doing this on an untrusted network.
 4. Add the new device to **Settings → Devices & services → ESPHome** in Home Assistant. Its name contains a MAC suffix for uniqueness. Complete the **per-device encryption key provisioning** when prompted. Use a current Home Assistant version that supports provisioning.
