@@ -1,0 +1,45 @@
+- lambda: |-
+    // Each include expands to an independent filter instance (separate static state).
+    constexpr int MAX_WINDOW = 20;
+    constexpr float STEP = 0.1f;
+    static float history[MAX_WINDOW] = {};
+    static int count = 0;
+    static int pos = 0;
+    static float last_output = NAN;
+
+    if (isnan(x)) return {};
+    history[pos] = x;
+    pos = (pos + 1) % MAX_WINDOW;
+    if (count < MAX_WINDOW) ++count;
+
+    float requested = id(temperature_smoothing_window).state;
+    int window = isnan(requested) ? 4 : (int) roundf(requested);
+    if (window < 1) window = 1;
+    if (window > MAX_WINDOW) window = MAX_WINDOW;
+    int n = window < count ? window : count;
+    float sum = 0.0f;
+    for (int i = 0; i < n; ++i) {
+      int index = (pos + MAX_WINDOW - 1 - i) % MAX_WINDOW;
+      sum += history[index];
+    }
+    float calibration = id(${calibration_id}).state;
+    if (isnan(calibration)) calibration = 0.0f;
+    const float value = sum / n + calibration;
+    float hysteresis = id(temperature_hysteresis).state;
+    if (isnan(hysteresis)) hysteresis = 0.02f;
+    if (hysteresis < 0.0f) hysteresis = 0.0f;
+    if (hysteresis > 0.05f) hysteresis = 0.05f;
+
+    if (isnan(last_output)) {
+      last_output = roundf(value / STEP) * STEP;
+      return last_output;
+    }
+    if (value >= last_output + STEP / 2.0f + hysteresis ||
+        value <= last_output - STEP / 2.0f - hysteresis) {
+      float output = roundf(value / STEP) * STEP;
+      if (fabsf(output - last_output) >= 0.099f) {
+        last_output = output;
+        return last_output;
+      }
+    }
+    return {};
