@@ -17,18 +17,19 @@ jobs:
           python-version: '3.12'
       - name: Install ESPHome
         run: pip install 'esphome==2026.11.0'
-      - name: Create dummy validation credentials (not real device secrets)
-        run: |
-          # ESPHome 2026.11 rejects all-zero Noise keys. Generate a fresh
-          # valid test-only key for each run, never a real device credential.
-          cat > secrets.yaml <<EOF
-          wifi_ssid: "CI-ONLY-SSID"
-          wifi_password: "CI-ONLY-PASSWORD"
-          api_encryption_key: "$(openssl rand -base64 32)"
-          fallback_ap_password: "CI-only-setup-pass"
-          EOF
-      - name: Validate YAML
+      - name: Validate credential-free firmware
         run: esphome config mhrv-monitor.yaml
-      - name: Compile
+      - name: Compile factory and OTA images
         run: esphome compile mhrv-monitor.yaml
-      # Do not upload CI binaries: their credentials are shared/test-only.
+      - name: Verify binaries exist
+        run: |
+          test -n "$(find .esphome/build -name 'firmware.factory.bin' -print -quit)"
+          test -n "$(find .esphome/build -name 'firmware.ota.bin' -print -quit)"
+      - name: Upload test binaries (not a published release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: mhrv-monitor-test-firmware
+          path: |
+            .esphome/build/**/firmware.factory.bin
+            .esphome/build/**/firmware.ota.bin
+          if-no-files-found: error
