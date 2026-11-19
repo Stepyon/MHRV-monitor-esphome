@@ -250,19 +250,6 @@ The operating-mode calculation corrects a typo in the previous Home Assistant co
 
 These are temperature-based *estimates* of heat-recovery effectiveness and operating behaviour, not direct measurements of fan state, damper position or official MVHR efficiency. Sensor placement, calibration, and airflow balance can affect the result.
 
-### Migrating from the Home Assistant templates
-
-After deploying the new firmware and verifying all four mapping dropdowns, you can remove or disable the three old Home Assistant template definitions. Their replacement ESPHome entities are called **Supply Efficiency**, **Exhaust Efficiency**, and **Operating Mode** on the MHRV Monitor device. Home Assistant entity IDs may differ from your old `sensor.mhrv_...` names; check automations and dashboards before deleting the old entities.
-
-| Home Assistant control | Default | Range |
-| --- | --- | --- |
-| Temperature Polling Interval | 5 s | 1–300 s |
-| Temperature Smoothing Window | 4 samples | 1–20 |
-| Temperature Hysteresis | 0.02 °C | 0–0.05 °C |
-| Temperature 1–4 Calibration | 0 °C each | −5 to +5 °C |
-
-The four Dallas sensor addresses depend on individual physical probes and are intentionally **not** committed. The personal original installation had offsets 0, +0.05, −0.10, and −0.20 °C, which can be entered in HA if suitable for your probes.
-
 ## Example Home Assistant dashboard
 
 This compact Lovelace card displays the **four duct temperatures** across the top, followed by the **Supply and Exhaust efficiencies** and their last **24 hours of history**. The operating-mode badge displays **Heating**, **Cooling**, **Neutral**, or **Summer Bypass** (when the device reports `Bypass`).
