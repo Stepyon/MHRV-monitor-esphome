@@ -1,0 +1,12 @@
+# Credentials and personal overrides
+secrets.yaml
+**/secrets.yaml
+*.local.yaml
+# ESPHome build products / caches
+.esphome/
+.pioenvs/
+.piolibdeps/
+__pycache__/
+*.bin
+*.elf
+*.map
