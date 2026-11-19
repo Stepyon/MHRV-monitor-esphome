@@ -10,9 +10,9 @@ Open-source, credential-free ESP8266 firmware for a four-probe mechanical heat r
 - Sliding-window moving average (1–20 samples; default 4).
 - 0.1 °C quantisation plus user-configurable hysteresis (default 0.02 °C).
 - Device settings saved to flash and restored across restarts.
-- Local encrypted ESPHome native API and OTA, with API key provisioned after setup.
+- Encrypted ESPHome native API, with a different key provisioned for every device.
 - **Compiled factory firmware**, installable via USB, with no preprogrammed user credentials.
-- **Published OTA binaries and firmware manifest** with a Home Assistant update entity that checks for updates every 6 hours.
+- **Published HTTP OTA binaries and firmware manifest** with a Home Assistant update entity that checks for updates every 6 hours.
 - Browser-based USB installation via ESP Web Tools (after enabling GitHub Pages).
 
 **Important security limitation:** This design uses ESP8266 with ESPHome HTTP OTA. Its HTTP client cannot verify TLS server certificates, and the downloaded firmware is only checked against the MD5 provided in the same manifest. A network attacker able to replace both the firmware and manifest could install malicious firmware. This is **not an authenticated update channel**. Only deploy on networks where you accept this risk; prefer an ESP32 with supported signed OTA verification for a security-sensitive product.
@@ -31,7 +31,7 @@ Position the probes in whichever duct locations you require (typically supply, e
 4. Add the new device to **Settings → Devices & services → ESPHome** in Home Assistant. Its name contains a MAC suffix for uniqueness. Complete the **per-device encryption key provisioning** when prompted. Use a current Home Assistant version that supports provisioning.
 5. The device exposes four temperature measurements, seven configuration controls and an **MHRV Monitor Firmware** update entity. Adjust offsets and filtering from Home Assistant.
 
-The same compiled binary works for every new supported board: Wi-Fi credentials and the API encryption key are provisioned and stored in device flash, **not inside the public image**.
+The same compiled binary works for every new supported board: Wi-Fi credentials and the API encryption key are provisioned and stored in device flash, **not inside the public image**. ESPHome limits the initial provisioning window to five minutes; power-cycle the device if the setup window expires.
 
 ## One-click OTA from Home Assistant
 
@@ -47,9 +47,9 @@ Release versions are embedded in the firmware's `esphome.project.version`; both 
 
 If an update fails, recovery may require USB serial flashing or re-provisioning Wi-Fi. For high-security deployments switch to ESP32 and a signed-OTA design.
 
-### Local native OTA
+### Local firmware customization
 
-The `ota: platform: esphome` entry also supports authenticated local updates using each device's provisioned API key. A developer who imports/adopts the YAML can compile and upload personalized firmware via ESPHome Device Builder or CLI. This mechanism is distinct from public HTTP firmware updates.
+The universal factory firmware intentionally has **no native ESPHome OTA endpoint**. A runtime-provisioned API key cannot be inherited as a native OTA encryption key at build time, and enabling unauthenticated native OTA would expose all devices on the local network. Developers can instead USB-flash a custom image or add native encrypted OTA when building a personalized YAML with a known per-device key. Such builds are outside the common managed release channel.
 
 ## Releases and continuous integration
 
