@@ -18,17 +18,23 @@ jobs:
           python-version: '3.12'
       - name: Install ESPHome
         run: pip install 'esphome==2026.11.0'
+      - name: Generate release notes for GitHub and Home Assistant
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/releases/generate-notes" -f tag_name="${GITHUB_REF_NAME}" -f target_commitish="${GITHUB_SHA}" --jq '.body' > release-notes.md
+          test -s release-notes.md
       - name: Compile release from tag version
         shell: bash
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           esphome -s firmware_version "${VERSION}" config mhrv-monitor.yaml
           esphome -s firmware_version "${VERSION}" compile mhrv-monitor.yaml
-          python scripts/package_release.py "${VERSION}"
+          python scripts/package_release.py "${VERSION}" release-notes.md
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${GITHUB_REF_NAME}" dist/* --title "${GITHUB_REF_NAME}" --generate-notes --verify-tag
+        run: gh release create "${GITHUB_REF_NAME}" dist/* --title "${GITHUB_REF_NAME}" --notes-file release-notes.md --verify-tag
       - name: Upload firmware feed artifact
         uses: actions/upload-pages-artifact@v3
         with:
