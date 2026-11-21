@@ -207,6 +207,8 @@ The `update.http_request` component checks periodically and exposes an update en
 
 Release versions are embedded in the firmware's `esphome.project.version`; both the image and the manifest are generated from the same `vX.Y.Z` tag. This is a **manual one-click update** model; updates are not silently installed. Keeping the flash partition and firmware format compatible matters across updates.
 
+**Changelog in the Home Assistant update dialog:** Each tagged release automatically gets GitHub-generated release notes. The release workflow embeds a **short, version-specific list of changes** in the update manifest's `ota.summary` field. Home Assistant displays that text as the firmware update's release notes, while `ota.release_url` links to the complete GitHub Release notes. The embedded text is intentionally capped at 700 characters to keep the ESP8266 manifest small. No Home Assistant YAML or firmware-side changes are needed; the feature appears on the **next released version**, not retroactively on already-published updates.
+
 **Caveats:** ESP8266 HTTP OTA is vulnerable to network man-in-the-middle attacks because `verify_ssl: false` is required. A public MD5 checksum detects accidental corruption but does not authenticate a release. ESPHome also has a reported [ESP8266 HTTP OTA issue where stored Wi-Fi credentials can be lost](https://github.com/esphome/esphome/issues/16211), observed on certain 1 MB configurations. Use a D1 mini with 4 MB flash; **physically test whether Wi-Fi credentials, encryption keys and calibration settings survive an HTTP OTA on your chosen board before distributing it**. No compatibility test on hardware is implied by a successful CI compilation.
 
 If an update fails, recovery may require USB serial flashing or re-provisioning Wi-Fi. For high-security deployments switch to ESP32 and a signed-OTA design.
@@ -218,7 +220,7 @@ The universal factory firmware intentionally has **no native ESPHome OTA endpoin
 ## Releases and continuous integration
 
 - Pull requests and pushes to `main`: GitHub Actions installs pinned **ESPHome 2026.11.0**, validates the no-secret YAML, compiles, and checks that both factory and OTA images are present.
-- Push a tag like `v0.1.0` **after merging to main**: the release workflow compiles with `-s firmware_version 0.1.0`, runs `scripts/package_release.py`, creates a GitHub Release with both images, source archive and SHA256 checksums, and deploys a versioned OTA image plus latest update manifest to GitHub Pages.
+- Push a tag like `v0.1.0` **after merging to main**: the release workflow generates changelog notes from merged GitHub changes, compiles with `-s firmware_version 0.1.0`, runs `scripts/package_release.py` with those notes, publishes the GitHub Release with both binaries, source archive and SHA256 checksums, and deploys a versioned OTA image plus latest update manifest to GitHub Pages. The same notes feed the GitHub release description and a compact summary in Home Assistant.
 - GitHub Pages must be enabled under **Settings → Pages → Build and deployment → Source: GitHub Actions** before the firmware feed works. The deployment workflow attempts to enable Pages but repository settings may still require manual intervention.
 - Check the [Actions page](https://github.com/Stepyon/MHRV-monitor-esphome/actions) and published [GitHub Pages firmware manifest](https://stepyon.github.io/MHRV-monitor-esphome/firmware/manifest.json) before advertising a release. A merged PR alone does **not** publish a release or enable OTA notifications.
 
