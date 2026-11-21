@@ -7,7 +7,14 @@ import sys
 import tarfile
 from pathlib import Path
 
+from release_notes import summarize_release_notes
+
+if len(sys.argv) not in (2, 3):
+    raise SystemExit("Usage: package_release.py VERSION [GITHUB_RELEASE_NOTES.md]")
 version = sys.argv[1]
+notes_path = Path(sys.argv[2]) if len(sys.argv) == 3 else None
+if notes_path is not None and not notes_path.is_file():
+    raise SystemExit(f"Release notes file not found: {notes_path}")
 if not version or any(c not in "0123456789.-abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" for c in version):
     raise SystemExit("Invalid release version")
 out = Path("dist")
@@ -26,6 +33,8 @@ ota = fw / "firmware.ota.bin"
 md5 = hashlib.md5(ota.read_bytes()).hexdigest()
 sha = hashlib.sha256(ota.read_bytes()).hexdigest()
 rel = f"https://github.com/Stepyon/MHRV-monitor-esphome/releases/tag/v{version}"
+release_notes_text = notes_path.read_text(encoding="utf-8") if notes_path is not None else ""
+release_summary = summarize_release_notes(release_notes_text, version)
 manifest = {
     "name": "MHRV Monitor",
     "version": version,
@@ -35,7 +44,7 @@ manifest = {
             "md5": md5,
             "path": f"/MHRV-monitor-esphome/firmware/{version}/firmware.ota.bin",
             "release_url": rel,
-            "summary": f"MHRV Monitor firmware v{version}"
+            "summary": release_summary
         }
     }]
 }
