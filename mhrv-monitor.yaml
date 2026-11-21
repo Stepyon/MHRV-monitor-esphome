@@ -78,11 +78,13 @@ sensor:
       file: .temperature_filters.yaml
       vars:
         calibration_id: temperature_1_calibration
-    # Notify the mapped virtual temperatures only when this physical probe
-    # publishes a new (filtered) reading.
-    on_value:
+    # Mark completion of this probe's asynchronous conversion on EVERY
+    # raw reading, even when the moving-average/hysteresis filter suppresses
+    # publication. The polling loop refreshes all derived sensors once.
+    on_raw_value:
       then:
-        - script.execute: refresh_air_temperatures
+        - lambda: |-
+            id(temperature_cycle_mask) |= 0x01;
 
   - platform: dallas_temp
     one_wire_id: temperature_bus
@@ -96,11 +98,13 @@ sensor:
       file: .temperature_filters.yaml
       vars:
         calibration_id: temperature_2_calibration
-    # Notify the mapped virtual temperatures only when this physical probe
-    # publishes a new (filtered) reading.
-    on_value:
+    # Mark completion of this probe's asynchronous conversion on EVERY
+    # raw reading, even when the moving-average/hysteresis filter suppresses
+    # publication. The polling loop refreshes all derived sensors once.
+    on_raw_value:
       then:
-        - script.execute: refresh_air_temperatures
+        - lambda: |-
+            id(temperature_cycle_mask) |= 0x02;
 
   - platform: dallas_temp
     one_wire_id: temperature_bus
@@ -114,11 +118,13 @@ sensor:
       file: .temperature_filters.yaml
       vars:
         calibration_id: temperature_3_calibration
-    # Notify the mapped virtual temperatures only when this physical probe
-    # publishes a new (filtered) reading.
-    on_value:
+    # Mark completion of this probe's asynchronous conversion on EVERY
+    # raw reading, even when the moving-average/hysteresis filter suppresses
+    # publication. The polling loop refreshes all derived sensors once.
+    on_raw_value:
       then:
-        - script.execute: refresh_air_temperatures
+        - lambda: |-
+            id(temperature_cycle_mask) |= 0x04;
 
   - platform: dallas_temp
     one_wire_id: temperature_bus
@@ -132,11 +138,13 @@ sensor:
       file: .temperature_filters.yaml
       vars:
         calibration_id: temperature_4_calibration
-    # Notify the mapped virtual temperatures only when this physical probe
-    # publishes a new (filtered) reading.
-    on_value:
+    # Mark completion of this probe's asynchronous conversion on EVERY
+    # raw reading, even when the moving-average/hysteresis filter suppresses
+    # publication. The polling loop refreshes all derived sensors once.
+    on_raw_value:
       then:
-        - script.execute: refresh_air_temperatures
+        - lambda: |-
+            id(temperature_cycle_mask) |= 0x08;
 
   # Stable, duct-named virtual sensors. Assign the physical probes using
   # the four HA select entities below; no reflashing required.
@@ -331,6 +339,19 @@ text_sensor:
 debug:
   update_interval: 60s
 
+# RAM-only polling bookkeeping. Never persist these values: doing so would
+# change the existing ESP8266 preferences layout and risk OTA settings loss.
+globals:
+  - id: temperature_cycle_mask
+    type: uint8_t
+    restore_value: no
+    initial_value: '0'
+
+  - id: temperature_cycle_start_ms
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'
+
 script:
   - id: refresh_air_temperatures
     mode: restart
@@ -351,14 +372,39 @@ script:
           condition:
             lambda: return true;
           then:
+            # Start a new cycle before requesting the four non-blocking
+            # 12-bit DS18B20 conversions (nominally ~750 ms each).
+            - lambda: |-
+                id(temperature_cycle_mask) = 0;
+                id(temperature_cycle_start_ms) = millis();
             - component.update: temperature_1
             - component.update: temperature_2
             - component.update: temperature_3
             - component.update: temperature_4
+
+            # Wait for the raw callbacks from ALL four probes rather than
+            # on_value, which does not run when hysteresis rejects a reading.
+            # Use a bounded timeout so a missing/faulty probe cannot stop
+            # subsequent polling cycles indefinitely.
+            - wait_until:
+                condition:
+                  lambda: |-
+                    return id(temperature_cycle_mask) == 0x0F;
+                timeout: 1200ms
+
+            # This runs ONCE per cycle, after the four sensor filter pipelines
+            # have had time to update their published states. On timeout, the
+            # existing filtered values are used for probes that did not report.
+            - script.execute: refresh_air_temperatures
+
+            # Keep the user-configured interval start-to-start, rather than
+            # adding the ~750 ms conversion delay to every interval.
             - delay: !lambda |-
                 float seconds = id(temperature_polling_interval).state;
                 if (isnan(seconds) || seconds < 1.0f) seconds = 5.0f;
-                return (uint32_t) (seconds * 1000.0f);
+                const uint32_t period_ms = (uint32_t) (seconds * 1000.0f);
+                const uint32_t elapsed_ms = millis() - id(temperature_cycle_start_ms);
+                return elapsed_ms >= period_ms ? 0u : period_ms - elapsed_ms;
 
 
 # Each dropdown maps a named duct temperature to a physical 1-Wire probe.
